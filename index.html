@@ -1,12 +1,17 @@
-
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap');
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
   :root {
     --bg: #0a0e1a;
@@ -33,1686 +38,369 @@
   }
 
   .scanline {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.015) 2px, rgba(0,212,255,0.015) 4px);
-    pointer-events: none; z-index: 0;
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,212,255,0.015) 2px,
+        rgba(0,212,255,0.015) 4px
+      );
+    pointer-events: none;
+    z-index: 0;
   }
 
-  #app { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 1.5rem 1rem; }
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+  }
 
-  /* HEADER */
   .hdr {
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
   }
-  .logo { font-family: var(--mono); font-size: 18px; color: var(--accent); letter-spacing: 0.1em; }
-  .logo span { color: var(--muted); }
-  .stats-row { display: flex; gap: 1rem; }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: .1em;
+  }
+
+  .logo span {
+    color: var(--muted);
+  }
+
+  .stats-row {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   .stat-chip {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 20px; padding: 4px 12px; font-family: var(--mono); font-size: 12px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .stat-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-  .stat-chip.streak .dot { background: var(--warn); }
-  .stat-chip.xp .dot { background: var(--accent3); }
-
-  /* SCREEN TRANSITIONS */
-  .screen { display: none; }
-  .screen.active { display: block; animation: fadeUp 0.3s ease; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-
-  /* HOME SCREEN */
-  .welcome-badge {
-    background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(124,58,237,0.1));
-    border: 1px solid rgba(0,212,255,0.3); border-radius: 12px;
-    padding: 2rem; margin-bottom: 1.5rem; text-align: center;
-  }
-  .welcome-badge h1 { font-size: 28px; font-weight: 700; margin-bottom: 0.5rem; }
-  .welcome-badge h1 em { color: var(--accent); font-style: normal; }
-  .welcome-badge p { color: var(--muted); font-size: 14px; line-height: 1.7; }
-
-  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
-  .mode-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    padding: 1.25rem; cursor: pointer; transition: all 0.2s;
-    position: relative; overflow: hidden;
-  }
-  .mode-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: var(--card-accent, var(--accent));
-  }
-  .mode-card:hover { border-color: var(--card-accent, var(--accent)); transform: translateY(-2px); }
-  .mode-card .icon { font-size: 28px; margin-bottom: 0.5rem; }
-  .mode-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .mode-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
-  .mode-card .badge {
-    position: absolute; top: 10px; right: 10px;
-    background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);
-    border-radius: 8px; padding: 2px 8px; font-family: var(--mono); font-size: 10px; color: var(--accent);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
   }
 
-  .progress-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
-  .progress-section h3 { font-size: 13px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
-  .topic-list { display: flex; flex-direction: column; gap: 8px; }
-  .topic-row { display: flex; align-items: center; gap: 12px; }
-  .topic-row span { font-size: 13px; min-width: 130px; }
-  .topic-bar { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
-  .topic-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.5s ease; }
-  .topic-pct { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 30px; text-align: right; }
-
-
-  /* HISTORY */
-  .floating-history-btn {
-    position: fixed; right: 18px; bottom: 18px; z-index: 20;
-    width: 52px; height: 52px; border-radius: 16px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border: 1px solid rgba(255,255,255,0.18); color: #06101f;
-    font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 14px 40px rgba(0,0,0,0.35); transition: transform 0.2s, opacity 0.2s;
-  }
-  .floating-history-btn:hover { transform: translateY(-2px); opacity: 0.92; }
-  .history-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1rem; }
-  .history-top h2 { font-size: 20px; }
-  .history-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
-  .history-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; }
-  .history-stat strong { display:block; font-family: var(--mono); font-size: 18px; color: var(--accent); }
-  .history-stat span { font-size: 11px; color: var(--muted); }
-  .history-tools { display:flex; gap:10px; margin-bottom:1rem; }
-  .history-search {
-    flex:1; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
-    padding: 0.75rem 0.9rem; color: var(--text); font-family: var(--sans); outline: none;
-  }
-  .history-search:focus { border-color: var(--accent); }
-  .history-list { display:flex; flex-direction:column; gap:10px; }
-  .history-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-    padding: 1rem; display:grid; grid-template-columns: 1fr auto; gap: 12px; align-items:start;
-  }
-  .history-term { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 15px; margin-bottom: 4px; }
-  .history-cat { display:inline-block; font-size:10px; color:#a78bfa; border:1px solid rgba(124,58,237,0.35); border-radius:999px; padding:2px 8px; margin-bottom:8px; }
-  .history-def { font-size:12px; color: var(--muted); line-height:1.55; }
-  .history-count {
-    min-width: 54px; height: 38px; border-radius: 12px;
-    background: rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.35);
-    color: var(--accent); display:flex; align-items:center; justify-content:center;
-    gap:4px; font-family: var(--mono); font-size:12px; font-weight:700;
-  }
-  .history-mini { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--muted); }
-  .empty-history { text-align:center; padding:2rem; color:var(--muted); border:1px dashed var(--border); border-radius:14px; background:rgba(255,255,255,0.02); }
-  @media (max-width: 560px) {
-    .history-summary { grid-template-columns: 1fr; }
-    .history-card { grid-template-columns: 1fr; }
-    .history-count { width: fit-content; }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
   }
 
-
-  /* QUIZ SCREEN */
-  .quiz-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem; }
-  .back-btn {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-    padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--muted);
-    transition: all 0.2s; font-family: var(--sans);
-  }
-  .back-btn:hover { color: var(--text); border-color: var(--accent); }
-  .progress-bar-wrap { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; }
-  .q-counter { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
-
-  .category-tag {
-    display: inline-block; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.4);
-    border-radius: 6px; padding: 3px 10px; font-family: var(--mono); font-size: 11px; color: #a78bfa;
-    margin-bottom: 0.75rem;
+  .screen {
+    display: none;
   }
 
-  .question-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-    padding: 1.75rem; margin-bottom: 1rem;
+  .screen.active {
+    display: block;
+    animation: fade .25s ease;
   }
-  .question-type { font-size: 11px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
-  .question-text { font-size: 18px; font-weight: 600; line-height: 1.5; }
-  .question-text .highlight { color: var(--accent); font-family: var(--mono); }
-  .question-context { font-size: 13px; color: var(--muted); margin-top: 0.75rem; font-style: italic; border-left: 2px solid var(--border); padding-left: 10px; }
 
-  .options-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1rem; }
-  .option-btn {
-    background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
-    padding: 0.9rem 1.2rem; cursor: pointer; text-align: left; font-family: var(--sans);
-    font-size: 14px; color: var(--text); transition: all 0.15s; display: flex; align-items: center; gap: 10px;
-  }
-  .option-btn .opt-letter {
-    width: 26px; height: 26px; border-radius: 6px; background: var(--surface2);
-    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 11px; color: var(--muted); flex-shrink: 0;
-    transition: all 0.15s;
-  }
-  .option-btn:hover { border-color: var(--accent); }
-  .option-btn:hover .opt-letter { background: rgba(0,212,255,0.1); color: var(--accent); border-color: var(--accent); }
-  .option-btn.correct { border-color: var(--accent3); background: rgba(16,185,129,0.08); }
-  .option-btn.correct .opt-letter { background: rgba(16,185,129,0.2); color: var(--accent3); border-color: var(--accent3); }
-  .option-btn.wrong { border-color: var(--danger); background: rgba(239,68,68,0.08); }
-  .option-btn.wrong .opt-letter { background: rgba(239,68,68,0.2); color: var(--danger); border-color: var(--danger); }
-  .option-btn:disabled { cursor: default; }
+  @keyframes fade {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
 
-  .fill-wrap { display: flex; gap: 10px; align-items: center; }
-  .fill-input {
-    flex: 1; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
-    padding: 0.8rem 1rem; font-family: var(--mono); font-size: 15px; color: var(--text);
-    outline: none; transition: border-color 0.2s;
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  .fill-input:focus { border-color: var(--accent); }
-  .fill-input.correct { border-color: var(--accent3); background: rgba(16,185,129,0.08); }
-  .fill-input.wrong { border-color: var(--danger); background: rgba(239,68,68,0.08); }
-  .submit-btn {
-    background: var(--accent); color: #000; border: none; border-radius: 10px;
-    padding: 0.8rem 1.25rem; font-family: var(--sans); font-weight: 600; font-size: 14px;
-    cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
-  }
-  .submit-btn:hover { opacity: 0.85; }
-  .submit-btn:disabled { opacity: 0.4; cursor: default; }
 
-  /* FLASHCARD */
-  .flashcard-wrap { perspective: 1000px; margin-bottom: 1rem; }
-  .flashcard {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-    padding: 2.5rem 2rem; min-height: 200px; cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-    transition: transform 0.4s ease, box-shadow 0.2s;
-    position: relative;
-  }
-  .flashcard:hover { box-shadow: 0 0 0 1px var(--accent); }
-  .flashcard.flipped { background: rgba(0,212,255,0.05); border-color: rgba(0,212,255,0.4); }
-  .flashcard-term { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--accent); }
-  .flashcard-phonetic { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .flashcard-def { font-size: 15px; line-height: 1.7; margin-top: 0.5rem; display: none; }
-  .flashcard-example { font-size: 13px; color: var(--muted); font-style: italic; margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.75rem; display: none; }
-  .flashcard.flipped .flashcard-def { display: block; }
-  .flashcard.flipped .flashcard-example { display: block; }
-  .flashcard.flipped .flashcard-phonetic { display: none; }
-  .tap-hint { font-size: 11px; color: var(--muted); position: absolute; bottom: 14px; right: 16px; font-family: var(--mono); }
-  .flashcard-actions { display: flex; gap: 10px; }
-  .fc-btn {
-    flex: 1; padding: 0.75rem; border-radius: 10px; border: 1.5px solid;
-    font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-  }
-  .fc-btn.again { border-color: var(--danger); color: var(--danger); background: rgba(239,68,68,0.08); }
-  .fc-btn.again:hover { background: rgba(239,68,68,0.18); }
-  .fc-btn.hard { border-color: var(--warn); color: var(--warn); background: rgba(245,158,11,0.08); }
-  .fc-btn.hard:hover { background: rgba(245,158,11,0.18); }
-  .fc-btn.good { border-color: var(--accent3); color: var(--accent3); background: rgba(16,185,129,0.08); }
-  .fc-btn.good:hover { background: rgba(16,185,129,0.18); }
-  .fc-action-panel {
-    display:none; margin: 1rem 0; border: 1px solid var(--border); border-radius: 14px;
-    background: rgba(255,255,255,0.03); padding: 1rem 1.15rem; animation: fadeUp 0.2s ease;
-  }
-  .fc-action-panel.show { display:block; }
-  .fc-action-panel h3 { font-size: 13px; font-family: var(--mono); color: var(--accent); margin-bottom: .65rem; text-transform: uppercase; letter-spacing:.08em; }
-  .fc-action-panel p { font-size: 14px; line-height: 1.65; color: var(--text); }
-  .fc-action-panel ul { margin: .35rem 0 0 1.1rem; display:flex; flex-direction:column; gap:.5rem; }
-  .fc-action-panel li { font-size: 13px; line-height: 1.55; color: var(--text); }
-  .fc-action-panel em { color: var(--muted); }
-  .fc-continue-btn {
-    display:none; width:100%; margin-top:.8rem; background: var(--surface2); border:1.5px solid var(--border);
-    border-radius:10px; padding:.85rem; color:var(--text); font-family:var(--sans); font-weight:700; cursor:pointer;
-  }
-  .fc-continue-btn.show { display:block; }
-  .fc-continue-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* FEEDBACK */
-  .feedback-box {
-    border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem;
-    display: none; border: 1px solid;
-  }
-  .feedback-box.show { display: block; animation: fadeUp 0.2s ease; }
-  .feedback-box.correct { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.4); }
-  .feedback-box.wrong { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4); }
-  .feedback-box .fb-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-  .feedback-box.correct .fb-title { color: var(--accent3); }
-  .feedback-box.wrong .fb-title { color: var(--danger); }
-  .feedback-box .fb-body { font-size: 13px; color: var(--muted); line-height: 1.6; }
-  .feedback-box .fb-answer { font-family: var(--mono); color: var(--accent); }
-
-  .next-btn {
-    width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
-    padding: 0.85rem; font-family: var(--sans); font-size: 15px; font-weight: 600; color: var(--text);
-    cursor: pointer; transition: all 0.2s; display: none;
-  }
-  .next-btn.show { display: block; }
-  .next-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* RESULTS */
-  .results-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-    padding: 2rem; text-align: center; margin-bottom: 1.5rem;
-  }
-  .score-ring {
-    width: 120px; height: 120px; margin: 0 auto 1.25rem;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    background: conic-gradient(var(--accent) 0deg, var(--surface2) 0deg);
-    position: relative;
-  }
-  .score-ring-inner {
-    width: 90px; height: 90px; border-radius: 50%; background: var(--surface);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
-  .score-number { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--accent); }
-  .score-label { font-size: 11px; color: var(--muted); }
-  .results-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 1.25rem; }
-  .res-stat { background: var(--surface2); border-radius: 10px; padding: 0.75rem; }
-  .res-stat .rs-val { font-family: var(--mono); font-size: 20px; font-weight: 700; }
-  .res-stat .rs-key { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .res-stat.good .rs-val { color: var(--accent3); }
-  .res-stat.warn .rs-val { color: var(--warn); }
-  .res-stat.bad .rs-val { color: var(--danger); }
-  .action-row { display: flex; gap: 10px; }
-  .action-btn {
-    flex: 1; padding: 0.85rem; border-radius: 10px; border: 1.5px solid var(--border);
-    background: var(--surface); font-family: var(--sans); font-size: 14px; font-weight: 600;
-    color: var(--text); cursor: pointer; transition: all 0.2s;
-  }
-  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .action-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
-  .action-btn.primary:hover { opacity: 0.85; }
-
-
-  /* AUTH */
   .auth-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
-    padding: 1.5rem; max-width: 460px; margin: 2rem auto; box-shadow: 0 18px 50px rgba(0,0,0,0.24);
-  }
-  .auth-card h1 { font-size: 24px; margin-bottom: .4rem; }
-  .auth-card p { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 1rem; }
-  .auth-field { display:flex; flex-direction:column; gap:6px; margin-bottom: 12px; }
-  .auth-field label { font-size: 11px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing:.08em; }
-  .auth-input {
-    background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
-    padding: .85rem 1rem; color: var(--text); font-family: var(--sans); outline:none;
-  }
-  .auth-input:focus { border-color: var(--accent); }
-  .auth-actions { display:flex; gap:10px; margin-top: 14px; }
-  .auth-actions .action-btn { width:100%; }
-  .auth-message { min-height: 20px; margin-top: 12px; color: var(--muted); font-size: 12px; line-height:1.5; }
-  .auth-message.error { color: var(--danger); }
-  .auth-message.ok { color: var(--accent3); }
-  .auth-switch { margin-top: 14px; font-size: 12px; color: var(--muted); text-align:center; }
-  .auth-switch button { background:none; border:none; color: var(--accent); cursor:pointer; font-family:var(--sans); font-weight:700; }
-  .user-chip { max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .logout-btn { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:20px; padding:4px 10px; cursor:pointer; font-family:var(--mono); font-size:11px; }
-  .logout-btn:hover { border-color:var(--danger); color:var(--danger); }
-  @media (max-width: 560px) {
-    .auth-actions { flex-direction:column; }
-    .stats-row { flex-wrap:wrap; justify-content:flex-end; }
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.5rem;
+    max-width: 450px;
+    margin: 2rem auto;
   }
 
+  .auth-card h1 {
+    font-size: 26px;
+    margin-bottom: .4rem;
+  }
+
+  .auth-card p {
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 13px;
+    margin-bottom: 1rem;
+  }
+
+  .auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .auth-field label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    text-transform: uppercase;
+  }
+
+  .auth-input {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: .9rem 1rem;
+    color: var(--text);
+    outline: none;
+    font-family: var(--sans);
+  }
+
+  .auth-input:focus {
+    border-color: var(--accent);
+  }
+
+  .action-btn {
+    width: 100%;
+    border: none;
+    background: var(--accent);
+    color: #000;
+    padding: .9rem;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+
+  .welcome-badge {
+    background:
+      linear-gradient(
+        135deg,
+        rgba(0,212,255,.1),
+        rgba(124,58,237,.1)
+      );
+
+    border: 1px solid rgba(0,212,255,.3);
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .welcome-badge h1 {
+    font-size: 30px;
+    margin-bottom: .6rem;
+  }
+
+  .welcome-badge em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .welcome-badge p {
+    color: var(--muted);
+    line-height: 1.7;
+    font-size: 14px;
+  }
+
+  .mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .mode-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: .2s;
+  }
+
+  .mode-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  .mode-card .icon {
+    font-size: 30px;
+    margin-bottom: .5rem;
+  }
+
+  .mode-card h3 {
+    margin-bottom: 4px;
+  }
+
+  .mode-card p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    .mode-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hdr {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
 </style>
 </head>
+
 <body>
+
 <div class="scanline"></div>
+
 <div id="app">
-  <header class="hdr">
-    <div class="logo">TECH<span>.</span>VOCAB</div>
-    <div class="stats-row">
-      <div class="stat-chip streak"><div class="dot"></div><span id="streak-count">0</span> day streak</div>
-      <div class="stat-chip xp"><div class="dot"></div><span id="xp-count">0</span> XP</div>
-      <div class="stat-chip" id="user-status-chip" style="display:none"><div class="dot"></div><span class="user-chip" id="user-email-label"></span></div>
-      <button class="logout-btn" id="logout-btn" onclick="signOutUser()" style="display:none">logout</button>
-    </div>
-  </header>
 
-  <!-- AUTH -->
-  <div class="screen active" id="screen-auth">
-    <div class="auth-card">
-      <div class="question-type">student access</div>
-      <h1 id="auth-title">Login to save your progress</h1>
-      <p id="auth-subtitle">Entre com email e senha para manter histórico, progresso, streak e expressões vistas salvos na sua conta.</p>
+<header class="hdr">
+  <div class="logo">TECH<span>.</span>VOCAB</div>
 
-      <div class="auth-field">
-        <label for="auth-email">email</label>
-        <input class="auth-input" id="auth-email" type="email" placeholder="student@email.com" autocomplete="email">
-      </div>
-      <div class="auth-field">
-        <label for="auth-password">password</label>
-        <input class="auth-input" id="auth-password" type="password" placeholder="minimum 6 characters" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuthForm()">
-      </div>
-
-      <div class="auth-actions">
-        <button class="action-btn primary" id="auth-submit-btn" onclick="submitAuthForm()">Login</button>
-      </div>
-
-      <div class="auth-message" id="auth-message"></div>
-      <div class="auth-switch">
-        <span id="auth-switch-text">Don't have an account?</span>
-        <button onclick="toggleAuthMode()" id="auth-switch-btn">Create account</button>
-      </div>
+  <div class="stats-row">
+    <div class="stat-chip">
+      <div class="dot"></div>
+      <span id="xp-count">0</span> XP
     </div>
   </div>
+</header>
 
-  <!-- HOME -->
-  <div class="screen" id="screen-home">
-    <div class="welcome-badge">
-      <h1>Level up your <em>Tech English</em></h1>
-      <p>Vocabulário real de dev, UX, produto e dados — do jeito que aparece em entrevistas, reuniões e daily standups em inglês.</p>
+<div class="screen active" id="screen-auth">
+
+  <div class="auth-card">
+
+    <h1>Login</h1>
+
+    <p>
+      Entre com email e senha para salvar seu progresso.
+    </p>
+
+    <div class="auth-field">
+      <label>Email</label>
+      <input
+        class="auth-input"
+        id="auth-email"
+        type="email"
+      >
     </div>
-    <div class="mode-grid">
-      <div class="mode-card" onclick="startMode('flashcard')" style="--card-accent:#00d4ff">
-        <div class="icon">🃏</div>
-        <h3>Flashcards</h3>
-        <p>Repetição espaçada. Aprenda e revise no ritmo certo.</p>
-        <div class="badge">SRS</div>
-      </div>
-      <div class="mode-card" onclick="startMode('mcq')" style="--card-accent:#7c3aed">
-        <div class="icon">🎯</div>
-        <h3>Multiple Choice</h3>
-        <p>Contexto real: escolha o termo correto para a situação.</p>
-      </div>
-      <div class="mode-card" onclick="startMode('fill')" style="--card-accent:#10b981">
-        <div class="icon">⌨️</div>
-        <h3>Fill in the Code</h3>
-        <p>Complete diálogos e frases técnicas em inglês.</p>
-      </div>
-      <div class="mode-card" onclick="startMode('match')" style="--card-accent:#f59e0b">
-        <div class="icon">🔗</div>
-        <h3>Match Terms</h3>
-        <p>Conecte termos às definições contra o relógio.</p>
-      </div>
+
+    <div class="auth-field">
+      <label>Password</label>
+      <input
+        class="auth-input"
+        id="auth-password"
+        type="password"
+      >
     </div>
-    <div class="progress-section">
-      <h3>// overall progress</h3>
-      <div class="topic-row" style="margin-bottom:16px">
-        <span>Total progress</span>
-        <div class="topic-bar">
-          <div class="topic-fill" id="overall-progress-fill" style="width:0%"></div>
-        </div>
-        <div class="topic-pct" id="overall-progress-pct">0%</div>
-      </div>
-      <h3>// topic progress</h3>
-      <div class="topic-list" id="topic-progress"></div>
-      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-        <div class="stat-chip"><div class="dot"></div><span id="completed-activities-count">0</span> sessions</div>
-        <div class="stat-chip"><div class="dot"></div><span id="saved-accuracy-count">0%</span> total accuracy</div>
-      </div>
-    </div>
+
+    <button
+      class="action-btn"
+      onclick="login()"
+    >
+      Enter
+    </button>
+
   </div>
 
-  <!-- FLASHCARD -->
-  <div class="screen" id="screen-flashcard">
-    <div class="quiz-header">
-      <button class="back-btn" onclick="goHome()">← back</button>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="fc-bar"></div></div>
-      <div class="q-counter" id="fc-counter">1 / 10</div>
-    </div>
-    <div class="category-tag" id="fc-cat">agile</div>
-    <div class="flashcard-wrap">
-      <div class="flashcard" id="flashcard" onclick="flipCard()">
-        <div class="flashcard-term" id="fc-term">—</div>
-        <div class="flashcard-phonetic" id="fc-phonetic">tap to reveal</div>
-        <div class="flashcard-def" id="fc-def">—</div>
-        <div class="flashcard-example" id="fc-ex">—</div>
-        <div class="tap-hint">tap to flip</div>
-      </div>
-    </div>
-    <div class="flashcard-actions" id="fc-actions" style="display:none">
-      <button class="fc-btn again" onclick="handleFlashcardAction('translate')">Translate 🇧🇷</button>
-      <button class="fc-btn hard" onclick="handleFlashcardAction('hard')">More examples 😅</button>
-      <button class="fc-btn good" onclick="handleFlashcardAction('got_it')">Got it ✓</button>
-    </div>
-    <div class="fc-action-panel" id="fc-action-panel"></div>
-    <button class="fc-continue-btn" id="fc-continue-btn" onclick="continueFlashcardAfterSupport()">Continue →</button>
-    <div id="fc-flip-hint" style="text-align:center;margin-top:.75rem">
-      <button class="back-btn" onclick="flipCard()" style="font-size:12px">reveal definition →</button>
-    </div>
+</div>
+
+<div class="screen" id="screen-home">
+
+  <div class="welcome-badge">
+    <h1>
+      Level up your <em>Tech English</em>
+    </h1>
+
+    <p>
+      Vocabulário real de dev, UX, produto e tecnologia.
+    </p>
   </div>
 
-  <!-- MCQ -->
-  <div class="screen" id="screen-mcq">
-    <div class="quiz-header">
-      <button class="back-btn" onclick="goHome()">← back</button>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="mcq-bar"></div></div>
-      <div class="q-counter" id="mcq-counter">1 / 10</div>
+  <div class="mode-grid">
+
+    <div class="mode-card">
+      <div class="icon">🃏</div>
+      <h3>Flashcards</h3>
+      <p>Aprenda termos técnicos rapidamente.</p>
     </div>
-    <div class="category-tag" id="mcq-cat">development</div>
-    <div class="question-card">
-      <div class="question-type" id="mcq-type">choose the correct term</div>
-      <div class="question-text" id="mcq-question">—</div>
-      <div class="question-context" id="mcq-context" style="display:none"></div>
+
+    <div class="mode-card">
+      <div class="icon">🎯</div>
+      <h3>Quiz</h3>
+      <p>Treine em contexto real.</p>
     </div>
-    <div class="options-grid" id="mcq-options"></div>
-    <div class="feedback-box" id="mcq-feedback">
-      <div class="fb-title" id="mcq-fb-title">Correct!</div>
-      <div class="fb-body" id="mcq-fb-body">—</div>
-    </div>
-    <button class="next-btn" id="mcq-next" onclick="nextQuestion('mcq')">Continue →</button>
+
   </div>
 
-  <!-- FILL -->
-  <div class="screen" id="screen-fill">
-    <div class="quiz-header">
-      <button class="back-btn" onclick="goHome()">← back</button>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="fill-bar"></div></div>
-      <div class="q-counter" id="fill-counter">1 / 8</div>
-    </div>
-    <div class="category-tag" id="fill-cat">standup</div>
-    <div class="question-card">
-      <div class="question-type">complete the sentence</div>
-      <div class="question-text" id="fill-question">—</div>
-      <div class="question-context" id="fill-context" style="display:none"></div>
-    </div>
-    <div class="fill-wrap">
-      <input class="fill-input" id="fill-input" type="text" placeholder="type the missing term..." autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')checkFill()">
-      <button class="submit-btn" onclick="checkFill()">Check</button>
-    </div>
-    <div class="feedback-box" id="fill-feedback" style="margin-top:10px">
-      <div class="fb-title" id="fill-fb-title">Correct!</div>
-      <div class="fb-body" id="fill-fb-body">—</div>
-    </div>
-    <button class="next-btn" id="fill-next" onclick="nextQuestion('fill')" style="margin-top:10px">Continue →</button>
-  </div>
-
-  <!-- MATCH -->
-  <div class="screen" id="screen-match">
-    <div class="quiz-header">
-      <button class="back-btn" onclick="goHome()">← back</button>
-      <div style="flex:1;text-align:center;font-family:var(--mono);font-size:13px;color:var(--accent)" id="match-timer">⏱ 0:00</div>
-      <div class="q-counter" id="match-score">0 / 6</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
-      <div>
-        <div style="font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Terms</div>
-        <div id="match-terms" style="display:flex;flex-direction:column;gap:8px"></div>
-      </div>
-      <div>
-        <div style="font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Definitions</div>
-        <div id="match-defs" style="display:flex;flex-direction:column;gap:8px"></div>
-      </div>
-    </div>
-    <div class="feedback-box" id="match-feedback">
-      <div class="fb-title" id="match-fb-title">—</div>
-      <div class="fb-body" id="match-fb-body">—</div>
-    </div>
-    <button class="next-btn" id="match-next" onclick="showResults('match')">See Results →</button>
-  </div>
-
-  <!-- RESULTS -->
-  <div class="screen" id="screen-results">
-    <div class="results-card">
-      <div class="score-ring" id="score-ring">
-        <div class="score-ring-inner">
-          <div class="score-number" id="res-score">0%</div>
-          <div class="score-label">accuracy</div>
-        </div>
-      </div>
-      <h2 id="res-headline" style="font-size:20px;margin-bottom:.5rem">Session complete!</h2>
-      <p id="res-message" style="font-size:13px;color:var(--muted)">—</p>
-      <div class="results-stats">
-        <div class="res-stat good"><div class="rs-val" id="res-correct">0</div><div class="rs-key">correct</div></div>
-        <div class="res-stat bad"><div class="rs-val" id="res-wrong">0</div><div class="rs-key">wrong</div></div>
-        <div class="res-stat warn"><div class="rs-val" id="res-xp">+0</div><div class="rs-key">XP earned</div></div>
-      </div>
-    </div>
-    <div class="action-row">
-      <button class="action-btn" onclick="goHome()">← Home</button>
-      <button class="action-btn primary" onclick="retryMode()">Play Again →</button>
-    </div>
-  </div>
-
-  <!-- HISTORY -->
-  <div class="screen" id="screen-history">
-    <div class="history-top">
-      <div>
-        <div class="question-type">learning history</div>
-        <h2>Expressions you have seen</h2>
-      </div>
-      <button class="back-btn" onclick="goHome()">← back</button>
-    </div>
-    <div class="history-summary">
-      <div class="history-stat"><strong id="history-total-terms">0</strong><span>expressions seen</span></div>
-      <div class="history-stat"><strong id="history-total-views">0</strong><span>total appearances</span></div>
-      <div class="history-stat"><strong id="history-most-seen">—</strong><span>most repeated</span></div>
-    </div>
-    <div class="history-tools">
-      <input class="history-search" id="history-search" type="text" placeholder="Search expression..." oninput="renderHistory()">
-      <button class="back-btn" onclick="clearHistorySearch()">clear</button>
-    </div>
-    <div class="history-list" id="history-list"></div>
-  </div>
-
-  <button class="floating-history-btn" onclick="openHistory()" title="Open history">🕘</button>
+</div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-const SUPABASE_URL = "https://pgdanuifukzisyyummpz.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_81NM6F08rsXXSCgjWl4iSg_v99cdVpo";
-const GAME_KEY = "tech_vocab_game";
 
-let supabaseClient = null;
-let currentUser = null;
-let authMode = "login";
-try {
-  if (window.supabase) {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-} catch (error) {
-  console.warn("Supabase client could not be initialized:", error);
-}
+const SUPABASE_URL =
+"https://pgdanuifukzisyyummpz.supabase.co";
 
-if (supabaseClient) {
-  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-    currentUser = session?.user || null;
-    updateAuthHeader(currentUser);
-    if (currentUser) {
-      await loadProgress();
-      updateHomeStats();
-    }
-  });
-}
+const SUPABASE_KEY =
+"sb_publishable_81NM6F08rsXXSCgjWl4iSg_v99cdVpo";
 
-const VOCAB = [
-  { term: "sprint", phonetic: "/sprɪnt/", cat: "Agile", def: "A fixed time period (usually 2 weeks) where a team completes a set of tasks or user stories.", example: '"We have a demo at the end of this sprint — make sure the feature is deployed."', synonyms: ["iteration","cycle"] },
-  { term: "backlog", phonetic: "/ˈbæklɒɡ/", cat: "Agile", def: "A prioritized list of features, tasks, and bug fixes that the team needs to work on.", example: '"Can you add that feature request to the product backlog? We\'ll groom it next week."', synonyms: ["queue","task list"] },
-  { term: "refactor", phonetic: "/riːˈfæktər/", cat: "Development", def: "To restructure existing code without changing its external behavior — improving readability, performance, or maintainability.", example: '"Before we add new features, let\'s refactor this module. The code is getting hard to maintain."', synonyms: ["clean up","restructure"] },
-  { term: "deploy", phonetic: "/dɪˈplɔɪ/", cat: "DevOps", def: "To release and make software available in a target environment (staging, production, etc.).", example: '"We\'ll deploy to production on Friday after the QA sign-off."', synonyms: ["release","ship","push"] },
-  { term: "bottleneck", phonetic: "/ˈbɒtəlnɛk/", cat: "Systems", def: "A point of congestion in a system that slows down the overall process or performance.", example: '"The bottleneck isn\'t the API — it\'s the database query that\'s taking 3 seconds."', synonyms: ["constraint","choke point"] },
-  { term: "user story", phonetic: "/ˈjuːzər ˈstɔːri/", cat: "Agile/UX", def: "A short, informal description of a feature from the perspective of the end user.", example: '"Let\'s write a user story for this flow: As a user, I want to filter results by date."', synonyms: ["requirement","ticket"] },
-  { term: "wireframe", phonetic: "/ˈwaɪərfreɪm/", cat: "UX Design", def: "A low-fidelity visual guide representing the skeletal structure of a screen or interface.", example: '"I shared the wireframes in Figma — can you give feedback before we go high-fidelity?"', synonyms: ["mockup (lo-fi)","sketch","blueprint"] },
-  { term: "handoff", phonetic: "/ˈhændɒf/", cat: "UX Design", def: "The process of transferring designs from the UX/design team to developers for implementation.", example: '"The design handoff is ready in Zeplin — specs, assets, and spacing are all annotated."', synonyms: ["design delivery","redline"] },
-  { term: "API", phonetic: "/ˌeɪ piː ˈaɪ/", cat: "Development", def: "Application Programming Interface — a set of rules that lets different software applications communicate.", example: '"We\'re consuming the payment gateway\'s API to handle all transactions on the backend."', synonyms: ["interface","endpoint","service"] },
-  { term: "scalability", phonetic: "/ˌskeɪləˈbɪlɪti/", cat: "Architecture", def: "The ability of a system to handle growing amounts of work or to be enlarged to accommodate growth.", example: '"Scalability is a key concern here — the system needs to support 10x the current traffic."', synonyms: ["growth capacity","elasticity"] },
-  { term: "technical debt", phonetic: "/ˈtɛknɪkəl dɛt/", cat: "Development", def: "The implied cost of future rework caused by choosing quick, easy solutions now instead of better approaches.", example: '"We\'ve been shipping fast, but now we\'re paying the price in technical debt. The codebase needs cleanup."', synonyms: ["code debt","legacy issues"] },
-  { term: "scope creep", phonetic: "/skəʊp kriːp/", cat: "Project Mgmt", def: "The gradual expansion of a project\'s requirements beyond its original objectives.", example: '"This is classic scope creep — we started with login, and now they want a full dashboard."', synonyms: ["feature creep","requirements expansion"] },
-  { term: "pull request", phonetic: "/pʊl rɪˈkwɛst/", cat: "Development", def: "A mechanism for a developer to notify team members that a feature branch is ready to be reviewed and merged.", example: '"I\'ll open a pull request when I\'m done. Can you review it before I merge into main?"', synonyms: ["PR","merge request","code review"] },
-  { term: "stakeholder", phonetic: "/ˈsteɪkˌhəʊldər/", cat: "Project Mgmt", def: "Any person, group, or organization that has an interest in or is affected by a project or product.", example: '"We need stakeholder buy-in before moving to the next phase. Let\'s schedule a review."', synonyms: ["sponsor","client","decision-maker"] },
-  { term: "pain point", phonetic: "/peɪn pɔɪnt/", cat: "UX/Product", def: "A specific problem or frustration that users experience — the gap between their current state and desired state.", example: '"The biggest pain point we found in user research is the checkout flow — too many steps."', synonyms: ["user frustration","problem area"] },
-  { term: "edge case", phonetic: "/ɛdʒ keɪs/", cat: "Development/QA", def: "An unusual situation or input that tests the boundaries of a system.", example: '"What happens if the user\'s name has special characters? That\'s an edge case we need to handle."', synonyms: ["corner case","boundary condition"] },
-  { term: "iteration", phonetic: "/ˌɪtəˈreɪʃən/", cat: "Agile", def: "A single development cycle where a version of the product is built, tested, and evaluated.", example: '"Let\'s ship this iteration and gather user feedback before deciding on the next features."', synonyms: ["sprint","cycle","version"] },
-  { term: "latency", phonetic: "/ˈleɪtənsi/", cat: "Performance", def: "The delay between a request and the corresponding response in a system.", example: '"Our API latency is spiking to 800ms during peak hours — we need to investigate."', synonyms: ["delay","response time","lag"] },
-  { term: "regression", phonetic: "/rɪˈɡrɛʃən/", cat: "QA/Testing", def: "A bug introduced when a change breaks functionality that was previously working correctly.", example: '"The new release caused a regression in the login flow — users can\'t sign in with Google anymore."', synonyms: ["breakage","bug regression"] },
-  { term: "onboarding", phonetic: "/ˈɒnbɔːdɪŋ/", cat: "UX/Product", def: "The process of guiding new users to understand and find value in a product for the first time.", example: '"Our onboarding flow has a 40% drop-off rate. We need to redesign the first 3 screens."', synonyms: ["user activation","first-run experience"] },
-  { term: "throughput", phonetic: "/ˈθruːpʊt/", cat: "Performance", def: "The amount of work a system can process within a given amount of time.", example: '"The pipeline\'s throughput is 500 records per second — that should be enough for the load tests."', synonyms: ["capacity","processing rate"] },
-  { term: "MVP", phonetic: "/ˌɛm viː ˈpiː/", cat: "Product", def: "Minimum Viable Product — the simplest version of a product that delivers value and can be tested with users.", example: '"Don\'t over-engineer. Let\'s ship an MVP first and learn from real usage before adding more features."', synonyms: ["prototype","first release","v0"] },
-  { term: "A/B testing", phonetic: "/ˌeɪ biː ˈtɛstɪŋ/", cat: "Product/UX", def: "A controlled experiment comparing two versions of something to determine which performs better.", example: '"We\'re running an A/B test on the CTA copy — version B has a 15% higher conversion rate."', synonyms: ["split testing","experimentation"] },
-  { term: "deprecate", phonetic: "/ˈdɛprɪkeɪt/", cat: "Development", def: "To mark something (a feature, API, or method) as outdated and scheduled for removal.", example: '"The v1 API will be deprecated next quarter. Make sure clients migrate to v2 before then."', synonyms: ["retire","phase out","sunset"] }
-];
+const supabaseClient =
+window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
-const MCQ_QUESTIONS = [
-  { cat: "Agile", type: "choose the correct term", q: "The team is reviewing the prioritized list of features and deciding what to tackle next. What is this list called?", correct: "backlog", options: ["backlog","latency","handoff","regression"], context: "Common question in a Scrum planning session." },
-  { cat: "DevOps", type: "choose the correct term", q: "The lead engineer says: 'We're ready to push the new version to the live environment.' What word best describes this action?", correct: "deploy", options: ["deploy","refactor","deprecate","wireframe"], context: "You'll hear this in almost every engineering daily standup." },
-  { cat: "Development", type: "choose the correct meaning", q: "A colleague says: 'This code works but it's a mess — we should refactor it before adding new features.' What does 'refactor' mean here?", correct: "Restructure the code without changing its behavior", options: ["Restructure the code without changing its behavior","Delete and rewrite the entire module","Fix bugs introduced by recent changes","Add new unit tests"], context: "Critical vocabulary for code review conversations." },
-  { cat: "UX Design", type: "choose the correct term", q: "The UX designer has created early sketches showing the layout of each screen, without colors or final visual details. What are these called?", correct: "wireframes", options: ["wireframes","user stories","edge cases","MVPs"], context: "Common in UX presentations and design critiques." },
-  { cat: "Systems", type: "choose the correct term", q: "The team notices that one database query is slowing down the entire application. This point of constraint is called a ___.", correct: "bottleneck", options: ["bottleneck","regression","throughput","sprint"], context: "Important in performance analysis conversations." },
-  { cat: "Project Mgmt", type: "choose the correct meaning", q: "The project started as a simple login page, but the client keeps adding requests — profile pages, dashboards, analytics. What is this called?", correct: "Scope creep", options: ["Scope creep","Technical debt","A/B testing","Iteration"], context: "You'll use this term in PM and stakeholder discussions." },
-  { cat: "Development", type: "choose the correct term", q: "After deploying a fix, the QA team discovers that a feature that worked before now breaks. This type of bug is called a ___.", correct: "regression", options: ["regression","edge case","deprecation","latency"], context: "Essential vocabulary for QA engineers and developers." },
-  { cat: "Product", type: "choose the correct term", q: "The product team decides to launch the simplest possible version to get feedback before adding more features. This strategy is called building an ___.", correct: "MVP", options: ["MVP","API","SRS","A/B test"], context: "Fundamental product development vocabulary." },
-  { cat: "Performance", type: "choose the correct term", q: "The monitoring shows an 800ms delay between when users click and when the page responds. This delay is called ___.", correct: "latency", options: ["latency","throughput","backlog","scope creep"], context: "Key term in system performance discussions." },
-  { cat: "Development", type: "choose the correct term", q: "The engineering team announces: 'The v1 API will no longer be supported after Q4.' The v1 API is being ___.", correct: "deprecated", options: ["deprecated","refactored","deployed","onboarded"], context: "Common in API migration announcements." }
-];
+async function login() {
 
-const FILL_QUESTIONS = [
-  { cat: "Standup", q: "We found a _____ in the payment flow — it takes 6 seconds to process. That's hurting conversion.", answer: "bottleneck", context: "Engineering daily standup conversation.", hint: "A point of congestion slowing the system down." },
-  { cat: "Design Review", q: "I shared the _____ in Figma. Can everyone check the layout before we move to the high-fidelity version?", answer: "wireframes", context: "Design team review meeting.", hint: "Low-fidelity layout sketches." },
-  { cat: "Sprint Planning", q: "Let's add this to the _____ and reprioritize it for next sprint. It's not urgent right now.", answer: "backlog", context: "Scrum sprint planning meeting.", hint: "The prioritized list of tasks to be done." },
-  { cat: "Code Review", q: "Before we _____ to production, let's make sure all tests pass and the PR is approved.", answer: "deploy", context: "Engineering code review discussion.", hint: "To release to a live environment." },
-  { cat: "Product Meeting", q: "This is classic _____ — we agreed on a login screen and now they want a full analytics dashboard.", answer: "scope creep", context: "Product planning with stakeholders.", hint: "Two words — uncontrolled expansion of requirements." },
-  { cat: "Architecture", q: "The system needs to handle 10x current users. _____ is our biggest architectural concern.", answer: "scalability", context: "System architecture discussion.", hint: "Ability to handle growth." },
-  { cat: "UX Research", q: "From the interviews, the main _____ is the checkout flow. Users are frustrated by the number of steps.", answer: "pain point", context: "UX research readout meeting.", hint: "Two words — a user problem or frustration." },
-  { cat: "Engineering", q: "This PR has a _____ — the new changes broke the Google login that was working in the previous version.", answer: "regression", context: "Engineering bug report discussion.", hint: "A bug introduced by a recent change." }
-];
+  const email =
+    document.getElementById('auth-email').value;
 
-const MATCH_DATA = [
-  { term: "pull request", def: "Code submitted for team review before merging" },
-  { term: "technical debt", def: "Cost of cutting corners that must be paid later" },
-  { term: "user story", def: "Feature described from the end user's perspective" },
-  { term: "A/B testing", def: "Comparing two versions to see which performs better" },
-  { term: "onboarding", def: "Guiding new users to find value in a product" },
-  { term: "edge case", def: "Unusual input that tests system boundaries" }
-];
+  const password =
+    document.getElementById('auth-password').value;
 
-const TERM_SUPPORT = {
-  "sprint": { translation: "ciclo curto de trabalho; sprint", examples: ["We need to finish this feature before the sprint ends.", "This sprint is focused on bug fixes and performance.", "The team planned five user stories for the next sprint.", "At the end of the sprint, we present what we built."] },
-  "backlog": { translation: "lista de tarefas/funcionalidades pendentes; backlog", examples: ["Let's move this request to the backlog.", "The backlog is too full, so we need to prioritize.", "This bug has been sitting in the backlog for weeks.", "The product manager organized the backlog before planning."] },
-  "refactor": { translation: "reestruturar/melhorar o código sem mudar o comportamento", examples: ["We should refactor this function before adding more logic.", "The code works, but it needs to be refactored.", "Refactoring makes the code easier to maintain.", "I refactored the component to reduce duplication."] },
-  "deploy": { translation: "publicar/subir uma versão para o ambiente final", examples: ["We deploy to production every Friday.", "Don't deploy before QA approves the release.", "The team deployed a hotfix this morning.", "After we deploy, we need to monitor the logs."] },
-  "bottleneck": { translation: "gargalo; ponto que trava ou desacelera o processo", examples: ["The database query is the main bottleneck.", "Hiring became a bottleneck for the project.", "We need to identify what is causing the bottleneck.", "The approval process is creating a bottleneck."] },
-  "user story": { translation: "descrição curta de uma funcionalidade pela perspectiva do usuário", examples: ["This user story needs clearer acceptance criteria.", "Let's write a user story for the checkout flow.", "Each user story should describe the user's goal.", "The developer asked for more details in the user story."] },
-  "wireframe": { translation: "rascunho estrutural de uma tela; esqueleto visual", examples: ["The wireframe shows the layout without final colors.", "Can you review the wireframe before we design the UI?", "This wireframe helps us discuss the flow.", "The designer created wireframes for the onboarding screens."] },
-  "handoff": { translation: "passagem/entrega do design para desenvolvimento", examples: ["The handoff includes assets, spacing, and notes.", "We need a clean handoff between design and engineering.", "The developer found missing specs in the handoff.", "The design handoff is ready in Figma."] },
-  "API": { translation: "interface que permite sistemas conversarem entre si", examples: ["The app uses an API to process payments.", "The API returned an error message.", "We need documentation for this API.", "The frontend consumes data from the API."] },
-  "scalability": { translation: "capacidade de um sistema crescer e aguentar mais uso", examples: ["Scalability matters if the user base grows quickly.", "The architecture was designed for scalability.", "We need to test scalability before launch.", "Poor scalability can break the app under heavy traffic."] },
-  "technical debt": { translation: "dívida técnica; custo futuro de soluções rápidas ou mal estruturadas", examples: ["We accumulated technical debt by rushing the release.", "This sprint includes time to reduce technical debt.", "Technical debt makes future changes slower.", "The team decided to pay down technical debt before scaling."] },
-  "scope creep": { translation: "aumento gradual e descontrolado do escopo do projeto", examples: ["The client keeps adding requests, so we're facing scope creep.", "Scope creep can delay the entire project.", "We need clear boundaries to avoid scope creep.", "The MVP became too complex because of scope creep."] },
-  "pull request": { translation: "solicitação para revisar e juntar código ao projeto", examples: ["I opened a pull request for the login fix.", "Can you review my pull request today?", "The pull request has three comments to resolve.", "After approval, we can merge the pull request."] },
-  "stakeholder": { translation: "parte interessada; pessoa impactada ou envolvida no projeto", examples: ["We need approval from the main stakeholder.", "Stakeholders want a clearer timeline.", "The meeting includes engineers, designers, and stakeholders.", "Stakeholder feedback changed the product priorities."] },
-  "pain point": { translation: "dor/problema/frustração específica do usuário", examples: ["The biggest pain point is the checkout process.", "User interviews revealed several pain points.", "This feature solves a common pain point.", "We should prioritize the most urgent pain point."] },
-  "edge case": { translation: "caso incomum que testa os limites do sistema", examples: ["Names with special characters are an edge case.", "We forgot to handle this edge case.", "The QA team found an edge case in the form.", "Edge cases can reveal hidden bugs."] },
-  "iteration": { translation: "ciclo/versão de melhoria e teste", examples: ["This iteration focuses on improving the dashboard.", "We'll test the first iteration with real users.", "Each iteration should bring the product closer to the goal.", "The team learned a lot from the previous iteration."] },
-  "latency": { translation: "atraso entre uma ação/requisição e a resposta do sistema", examples: ["High latency makes the app feel slow.", "API latency increased during peak hours.", "We reduced latency by optimizing the query.", "Users noticed the latency on mobile connections."] },
-  "regression": { translation: "bug que aparece quando algo que funcionava quebra após uma mudança", examples: ["The new release caused a regression in login.", "Regression testing helps catch old bugs coming back.", "QA found a regression after the update.", "We need to fix this regression before deployment."] },
-  "onboarding": { translation: "processo de introduzir e orientar novos usuários", examples: ["The onboarding flow explains the main features.", "Good onboarding helps users see value quickly.", "We redesigned onboarding to reduce drop-off.", "The first onboarding screen asks about user goals."] },
-  "throughput": { translation: "quantidade de trabalho/processamento em um período", examples: ["The system has high throughput during normal traffic.", "We measured throughput in requests per second.", "The pipeline's throughput improved after optimization.", "Low throughput can slow down data processing."] },
-  "MVP": { translation: "produto mínimo viável; versão simples para testar valor", examples: ["Let's launch an MVP before building the full platform.", "The MVP should solve one core problem well.", "User feedback from the MVP will guide the next version.", "Don't add too many features to the MVP."] },
-  "A/B testing": { translation: "teste comparando duas versões para ver qual funciona melhor", examples: ["We're running A/B testing on the landing page.", "A/B testing showed that version B converts better.", "The team used A/B testing to choose the CTA.", "Good A/B testing needs a clear metric."] },
-  "deprecate": { translation: "marcar como obsoleto e planejar remover", examples: ["The old API will be deprecated next quarter.", "We deprecated this method after releasing v2.", "Developers need time to migrate before we deprecate it.", "The feature was deprecated because few users used it."] },
-  "wireframes": { translation: "rascunhos estruturais de telas; esqueletos visuais", examples: ["The wireframes show the basic layout.", "We reviewed the wireframes before visual design.", "These wireframes are not final screens.", "The designer shared wireframes for feedback."] },
-  "deprecated": { translation: "obsoleto; marcado para remoção futura", examples: ["The v1 API is deprecated.", "This feature is deprecated and should not be used.", "Deprecated methods may stop working later.", "The documentation explains which endpoints are deprecated."] }
-};
-
-let state = {
-  xp: 0,
-  streak: 0,
-  topicStats: {
-    Agile: { correct: 0, attempts: 0 },
-    Development: { correct: 0, attempts: 0 },
-    UX: { correct: 0, attempts: 0 },
-    DevOps: { correct: 0, attempts: 0 },
-    Product: { correct: 0, attempts: 0 }
-  },
-  completedActivities: 0,
-  totalCorrect: 0,
-  totalWrong: 0,
-  expressionHistory: {},
-  currentMode: null,
-  qIndex: 0,
-  correct: 0,
-  wrong: 0,
-  sessionCards: [],
-  matchSelected: { term: null, def: null },
-  matchPairs: [],
-  matchScore: 0,
-  matchTimer: null,
-  matchSeconds: 0,
-  lastMode: null
-};
-
-const SAVE_KEY = 'tech_vocab_progress_v4';
-const LEGACY_SAVE_KEYS = ['tech_vocab_progress_v3', 'tech_vocab_progress_v2', 'tech_vocab_progress_v1'];
-
-function mergeTopicStats(savedStats) {
-  const base = {
-    Agile: { correct: 0, attempts: 0 },
-    Development: { correct: 0, attempts: 0 },
-    UX: { correct: 0, attempts: 0 },
-    DevOps: { correct: 0, attempts: 0 },
-    Product: { correct: 0, attempts: 0 }
-  };
-
-  if (!savedStats) return base;
-
-  Object.keys(base).forEach(cat => {
-    base[cat].correct = Number(savedStats?.[cat]?.correct ?? 0);
-    base[cat].attempts = Number(savedStats?.[cat]?.attempts ?? 0);
-  });
-
-  return base;
-}
-
-function getContentUnits() {
-  const units = [];
-
-  VOCAB.forEach((item, index) => {
-    units.push({
-      id: `flashcard:${index}:${normalizeTermKey(item.term)}`,
-      source: 'flashcard',
-      term: item.term,
-      cat: normalizeCategory(item.cat)
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
     });
-  });
 
-  MCQ_QUESTIONS.forEach((item, index) => {
-    units.push({
-      id: `multiple_choice:${index}:${normalizeTermKey(item.correct)}`,
-      source: 'multiple_choice',
-      term: item.correct,
-      cat: normalizeCategory(item.cat)
-    });
-  });
-
-  FILL_QUESTIONS.forEach((item, index) => {
-    units.push({
-      id: `fill:${index}:${normalizeTermKey(item.answer)}`,
-      source: 'fill',
-      term: item.answer,
-      cat: normalizeCategory(item.cat)
-    });
-  });
-
-  MATCH_DATA.forEach((item, index) => {
-    units.push({
-      id: `match:${index}:${normalizeTermKey(item.term)}`,
-      source: 'match',
-      term: item.term,
-      cat: normalizeCategory(getTermInfo(item.term).cat) || 'Development'
-    });
-  });
-
-  return units.filter(unit => unit.cat);
-}
-
-function wasContentUnitExplored(unit) {
-  const key = normalizeTermKey(unit.term);
-  const historyItem = state.expressionHistory?.[key];
-  if (!historyItem) return false;
-  return Number(historyItem.sources?.[unit.source] || 0) > 0;
-}
-
-function getTopicExploration(cat) {
-  const units = getContentUnits().filter(unit => unit.cat === cat);
-  const total = units.length;
-  const explored = units.filter(wasContentUnitExplored).length;
-  const pct = total ? Math.round((explored / total) * 100) : 0;
-
-  return { total, explored, pct };
-}
-
-function getOverallExploration() {
-  const units = getContentUnits();
-  const total = units.length;
-  const explored = units.filter(wasContentUnitExplored).length;
-  const pct = total ? Math.round((explored / total) * 100) : 0;
-
-  return { total, explored, pct };
-}
-
-function getTopicPct(cat) {
-  return getTopicExploration(cat).pct;
-}
-
-function recordTopicResult(catValue, isCorrect) {
-  const cat = normalizeCategory(catValue);
-  if (!cat) return;
-
-  if (!state.topicStats[cat]) state.topicStats[cat] = { correct: 0, attempts: 0 };
-  state.topicStats[cat].attempts += 1;
-  if (isCorrect) state.topicStats[cat].correct += 1;
-}
-
-function recordTermResult(term, isCorrect) {
-  const entry = VOCAB.find(v => v.term.toLowerCase() === String(term).toLowerCase());
-  if (entry) recordTopicResult(entry.cat, isCorrect);
-  recordExpressionResult(term, isCorrect);
-}
-
-
-function normalizeTermKey(term) {
-  return String(term || '').trim().toLowerCase();
-}
-
-function findVocabEntry(term) {
-  const key = normalizeTermKey(term);
-  return VOCAB.find(v => normalizeTermKey(v.term) === key) || null;
-}
-
-function getTermInfo(term) {
-  const entry = findVocabEntry(term);
-  if (entry) return entry;
-
-  const matchItem = MATCH_DATA.find(item => normalizeTermKey(item.term) === normalizeTermKey(term));
-  if (matchItem) {
-    return { term: matchItem.term, cat: 'Development', def: matchItem.def, example: '' };
-  }
-
-  return { term: String(term), cat: 'General', def: '', example: '' };
-}
-
-function recordExpressionSeen(term, source = '') {
-  const info = getTermInfo(term);
-  const key = normalizeTermKey(info.term);
-  if (!key) return;
-
-  if (!state.expressionHistory[key]) {
-    state.expressionHistory[key] = {
-      term: info.term,
-      cat: normalizeCategory(info.cat) || info.cat || 'General',
-      def: info.def || '',
-      example: info.example || '',
-      count: 0,
-      correct: 0,
-      wrong: 0,
-      actions: { translate: 0, hard: 0, got_it: 0 },
-      sources: {},
-      firstSeen: new Date().toISOString(),
-      lastSeen: null
-    };
-  }
-
-  if (!state.expressionHistory[key].actions) state.expressionHistory[key].actions = { translate: 0, hard: 0, got_it: 0 };
-  state.expressionHistory[key].count += 1;
-  state.expressionHistory[key].lastSeen = new Date().toISOString();
-  if (source) state.expressionHistory[key].sources[source] = (state.expressionHistory[key].sources[source] || 0) + 1;
-  saveProgress();
-}
-
-function recordExpressionResult(term, isCorrect) {
-  const info = getTermInfo(term);
-  const key = normalizeTermKey(info.term);
-  if (!key) return;
-
-  if (!state.expressionHistory[key]) recordExpressionSeen(info.term, 'result');
-  if (isCorrect) state.expressionHistory[key].correct += 1;
-  else state.expressionHistory[key].wrong += 1;
-  saveProgress();
-}
-
-function recordFlashcardAction(term, action) {
-  const info = getTermInfo(term);
-  const key = normalizeTermKey(info.term);
-  if (!key) return;
-
-  if (!state.expressionHistory[key]) recordExpressionSeen(info.term, 'flashcard_action');
-  if (!state.expressionHistory[key].actions) state.expressionHistory[key].actions = { translate: 0, hard: 0, got_it: 0 };
-
-  state.expressionHistory[key].actions[action] = Number(state.expressionHistory[key].actions[action] || 0) + 1;
-  state.expressionHistory[key].lastAction = action;
-  state.expressionHistory[key].lastSeen = new Date().toISOString();
-  saveProgress();
-}
-
-function getExpressionHistoryArray() {
-  return Object.values(state.expressionHistory || {}).sort((a, b) => {
-    if ((b.count || 0) !== (a.count || 0)) return (b.count || 0) - (a.count || 0);
-    return String(a.term).localeCompare(String(b.term));
-  });
-}
-
-function openHistory() {
-  if (!currentUser) { showScreen('auth'); return; }
-  stopMatchTimer();
-  renderHistory();
-  showScreen('history');
-}
-
-function clearHistorySearch() {
-  const input = document.getElementById('history-search');
-  if (input) input.value = '';
-  renderHistory();
-}
-
-function renderHistory() {
-  const list = document.getElementById('history-list');
-  if (!list) return;
-
-  const search = normalizeTermKey(document.getElementById('history-search')?.value || '');
-  const all = getExpressionHistoryArray();
-  const filtered = search ? all.filter(item =>
-    normalizeTermKey(item.term).includes(search) ||
-    normalizeTermKey(item.cat).includes(search) ||
-    normalizeTermKey(item.def).includes(search)
-  ) : all;
-
-  const totalTerms = all.length;
-  const totalViews = all.reduce((sum, item) => sum + Number(item.count || 0), 0);
-  const mostSeen = all[0]?.term || '—';
-
-  const totalTermsEl = document.getElementById('history-total-terms');
-  const totalViewsEl = document.getElementById('history-total-views');
-  const mostSeenEl = document.getElementById('history-most-seen');
-  if (totalTermsEl) totalTermsEl.textContent = totalTerms;
-  if (totalViewsEl) totalViewsEl.textContent = totalViews;
-  if (mostSeenEl) mostSeenEl.textContent = mostSeen;
-
-  if (!filtered.length) {
-    list.innerHTML = `<div class="empty-history">No expressions yet. Start an activity and the terms will appear here automatically.</div>`;
+  if (error) {
+    alert(error.message);
     return;
   }
 
-  list.innerHTML = filtered.map(item => {
-    const accuracyTotal = Number(item.correct || 0) + Number(item.wrong || 0);
-    const accuracy = accuracyTotal ? Math.round((Number(item.correct || 0) / accuracyTotal) * 100) : null;
-    return `
-      <div class="history-card">
-        <div>
-          <div class="history-term">${escapeHtml(item.term)}</div>
-          <div class="history-cat">${escapeHtml(item.cat || 'General')}</div>
-          <div class="history-def">${escapeHtml(item.def || 'No definition saved yet.')}</div>
-          <div class="history-mini">
-            <span>✓ ${Number(item.correct || 0)}</span>
-            <span>✗ ${Number(item.wrong || 0)}</span>
-            <span>🇧🇷 ${Number(item.actions?.translate || 0)} translate</span>
-            <span>😅 ${Number(item.actions?.hard || 0)} hard</span>
-            <span>✅ ${Number(item.actions?.got_it || 0)} got it</span>
-            <span>${accuracy === null ? 'accuracy —' : accuracy + '% accuracy'}</span>
-          </div>
-        </div>
-        <div class="history-count" title="Times this expression appeared">👁 ${Number(item.count || 0)}x</div>
-      </div>
-    `;
-  }).join('');
+  document
+    .getElementById('screen-auth')
+    .classList.remove('active');
+
+  document
+    .getElementById('screen-home')
+    .classList.add('active');
 }
 
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
-
-function getLocalSaveKey() {
-  return currentUser?.id ? `${SAVE_KEY}_${currentUser.id}` : `${SAVE_KEY}_guest`;
-}
-
-function setAuthMessage(message = '', type = '') {
-  const el = document.getElementById('auth-message');
-  if (!el) return;
-  el.textContent = message;
-  el.classList.remove('error', 'ok');
-  if (type) el.classList.add(type);
-}
-
-function setAuthLoading(isLoading) {
-  const btn = document.getElementById('auth-submit-btn');
-  if (!btn) return;
-  btn.disabled = isLoading;
-  btn.textContent = isLoading ? 'Loading...' : (authMode === 'login' ? 'Login' : 'Create account');
-}
-
-function toggleAuthMode() {
-  authMode = authMode === 'login' ? 'signup' : 'login';
-  const title = document.getElementById('auth-title');
-  const subtitle = document.getElementById('auth-subtitle');
-  const submit = document.getElementById('auth-submit-btn');
-  const switchText = document.getElementById('auth-switch-text');
-  const switchBtn = document.getElementById('auth-switch-btn');
-
-  if (authMode === 'login') {
-    if (title) title.textContent = 'Login to save your progress';
-    if (subtitle) subtitle.textContent = 'Entre com email e senha para manter histórico, progresso, streak e expressões vistas salvos na sua conta.';
-    if (submit) submit.textContent = 'Login';
-    if (switchText) switchText.textContent = "Don't have an account?";
-    if (switchBtn) switchBtn.textContent = 'Create account';
-  } else {
-    if (title) title.textContent = 'Create your student account';
-    if (subtitle) subtitle.textContent = 'Crie uma conta para este jogo salvar seu progresso individualmente no Supabase.';
-    if (submit) submit.textContent = 'Create account';
-    if (switchText) switchText.textContent = 'Already have an account?';
-    if (switchBtn) switchBtn.textContent = 'Login';
-  }
-
-  setAuthMessage('');
-}
-
-function updateAuthHeader(user) {
-  const userChip = document.getElementById('user-status-chip');
-  const userEmail = document.getElementById('user-email-label');
-  const logoutBtn = document.getElementById('logout-btn');
-
-  if (user) {
-    if (userChip) userChip.style.display = 'flex';
-    if (userEmail) userEmail.textContent = user.email || 'logged in';
-    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
-  } else {
-    if (userChip) userChip.style.display = 'none';
-    if (userEmail) userEmail.textContent = '';
-    if (logoutBtn) logoutBtn.style.display = 'none';
-  }
-}
-
-async function submitAuthForm() {
-  if (!supabaseClient) {
-    setAuthMessage('Supabase não carregou. Confira sua internet ou o CDN do Supabase.', 'error');
-    return;
-  }
-
-  const email = document.getElementById('auth-email')?.value.trim();
-  const password = document.getElementById('auth-password')?.value;
-
-  if (!email || !password) {
-    setAuthMessage('Preencha email e senha.', 'error');
-    return;
-  }
-
-  if (password.length < 6) {
-    setAuthMessage('A senha precisa ter pelo menos 6 caracteres.', 'error');
-    return;
-  }
-
-  setAuthLoading(true);
-  setAuthMessage('');
-
-  try {
-    const result = authMode === 'login'
-      ? await supabaseClient.auth.signInWithPassword({ email, password })
-      : await supabaseClient.auth.signUp({ email, password });
-
-    if (result.error) {
-      setAuthMessage(result.error.message, 'error');
-      return;
-    }
-
-    currentUser = result.data?.user || null;
-
-    if (!currentUser) {
-      setAuthMessage('Conta criada. Confira o email, se a confirmação estiver ativada no Supabase.', 'ok');
-      return;
-    }
-
-    updateAuthHeader(currentUser);
-    await loadProgress();
-    updateHomeStats();
-    showScreen('home');
-  } catch (error) {
-    setAuthMessage(error?.message || 'Erro ao autenticar.', 'error');
-  } finally {
-    setAuthLoading(false);
-  }
-}
-
-async function signOutUser() {
-  stopMatchTimer();
-  if (supabaseClient) await supabaseClient.auth.signOut();
-  currentUser = null;
-  updateAuthHeader(null);
-  applyProgressPayload({});
-  updateHomeStats();
-  showScreen('auth');
-  setAuthMessage('Você saiu da conta.', 'ok');
-}
-
-async function requireAuthOnStart() {
-  if (!supabaseClient) {
-    showScreen('auth');
-    setAuthMessage('Supabase não carregou. Verifique a conexão.', 'error');
-    return;
-  }
-
-  const { data } = await supabaseClient.auth.getSession();
-  currentUser = data?.session?.user || null;
-  updateAuthHeader(currentUser);
-
-  if (!currentUser) {
-    showScreen('auth');
-    return;
-  }
-
-  await loadProgress();
-  updateHomeStats();
-  showScreen('home');
-}
-
-function getProgressPayload() {
-  return {
-    xp: state.xp,
-    streak: state.streak,
-    topicStats: state.topicStats,
-    completedActivities: state.completedActivities,
-    totalCorrect: state.totalCorrect,
-    totalWrong: state.totalWrong,
-    expressionHistory: state.expressionHistory
-  };
-}
-
-function applyProgressPayload(data = {}) {
-  state.xp = Number(data.xp ?? 0);
-  state.streak = Number(data.streak ?? 0);
-  state.topicStats = mergeTopicStats(data.topicStats);
-  state.completedActivities = Number(data.completedActivities ?? 0);
-  state.totalCorrect = Number(data.totalCorrect ?? 0);
-  state.totalWrong = Number(data.totalWrong ?? 0);
-  state.expressionHistory = data.expressionHistory || {};
-
-  Object.values(state.expressionHistory).forEach(item => {
-    if (!item.actions) item.actions = { translate: 0, hard: 0, got_it: 0 };
-  });
-}
-
-async function getLoggedUser() {
-  if (currentUser) return currentUser;
-  if (!supabaseClient) return null;
-  try {
-    const { data, error } = await supabaseClient.auth.getUser();
-    if (error) return null;
-    currentUser = data?.user || null;
-    updateAuthHeader(currentUser);
-    return currentUser;
-  } catch (error) {
-    console.warn('Could not read Supabase user:', error);
-    return null;
-  }
-}
-
-async function loadProgress() {
-  try {
-    let saved = localStorage.getItem(getLocalSaveKey());
-    if (!saved) {
-      const legacyKey = LEGACY_SAVE_KEYS.find(key => localStorage.getItem(key));
-      if (legacyKey) saved = localStorage.getItem(legacyKey);
-    }
-
-    if (saved) {
-      applyProgressPayload(JSON.parse(saved));
-    }
-
-    const user = await getLoggedUser();
-    if (!user || !supabaseClient) {
-      saveProgress(false);
-      return;
-    }
-
-    const { data: remoteRow, error } = await supabaseClient
-      .from('game_progress')
-      .select('progress, updated_at')
-      .eq('user_id', user.id)
-      .eq('game_key', GAME_KEY)
-      .maybeSingle();
-
-    if (error) {
-      console.warn('Could not load Supabase progress:', error);
-      saveProgress(false);
-      return;
-    }
-
-    if (remoteRow?.progress) {
-      applyProgressPayload(remoteRow.progress);
-      localStorage.setItem(getLocalSaveKey(), JSON.stringify(getProgressPayload()));
-    } else {
-      saveProgress(true);
-    }
-  } catch (error) {
-    console.warn('Could not load saved progress:', error);
-  }
-}
-
-function saveProgress(syncRemote = true) {
-  const data = getProgressPayload();
-  localStorage.setItem(getLocalSaveKey(), JSON.stringify(data));
-
-  if (syncRemote) {
-    syncProgressToSupabase(data);
-  }
-}
-
-async function syncProgressToSupabase(data = getProgressPayload()) {
-  const user = await getLoggedUser();
-  if (!user || !supabaseClient) return;
-
-  try {
-    const { error } = await supabaseClient
-      .from('game_progress')
-      .upsert({
-        user_id: user.id,
-        game_key: GAME_KEY,
-        progress: data,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,game_key'
-      });
-
-    if (error) console.warn('Could not sync Supabase progress:', error);
-  } catch (error) {
-    console.warn('Could not sync Supabase progress:', error);
-  }
-}
-
-async function resetProgress() {
-  localStorage.removeItem(getLocalSaveKey());
-  LEGACY_SAVE_KEYS.forEach(key => localStorage.removeItem(key));
-  state.xp = 0;
-  state.streak = 0;
-  state.topicStats = mergeTopicStats(null);
-  state.completedActivities = 0;
-  state.totalCorrect = 0;
-  state.totalWrong = 0;
-  state.expressionHistory = {};
-
-  const user = await getLoggedUser();
-  if (user && supabaseClient) {
-    await supabaseClient
-      .from('game_progress')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('game_key', GAME_KEY);
-  }
-
-  renderHistory();
-  updateHomeStats();
-}
-
-function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
-
-function goHome() {
-  stopMatchTimer();
-  showScreen('home');
-  updateHomeStats();
-}
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
-}
-
-function updateHomeStats() {
-  document.getElementById('xp-count').textContent = state.xp;
-  document.getElementById('streak-count').textContent = state.streak;
-
-  const totalAnswered = state.totalCorrect + state.totalWrong;
-  const savedAccuracy = totalAnswered > 0 ? Math.round((state.totalCorrect / totalAnswered) * 100) : 0;
-  const overallExploration = getOverallExploration();
-  const overallProgress = overallExploration.pct;
-
-  const overallFill = document.getElementById('overall-progress-fill');
-  const overallPct = document.getElementById('overall-progress-pct');
-  const completedCount = document.getElementById('completed-activities-count');
-  const savedAccuracyCount = document.getElementById('saved-accuracy-count');
-
-  if (overallFill) overallFill.style.width = overallProgress + '%';
-  if (overallPct) overallPct.textContent = overallProgress + '%';
-  if (completedCount) completedCount.textContent = state.completedActivities;
-  if (savedAccuracyCount) savedAccuracyCount.textContent = savedAccuracy + '%';
-  const topics = [
-    { label: 'Agile & Scrum', key: 'Agile', pct: getTopicPct('Agile') },
-    { label: 'Development', key: 'Development', pct: getTopicPct('Development') },
-    { label: 'UX & Design', key: 'UX', pct: getTopicPct('UX') },
-    { label: 'DevOps', key: 'DevOps', pct: getTopicPct('DevOps') },
-    { label: 'Product', key: 'Product', pct: getTopicPct('Product') }
-  ];
-  const container = document.getElementById('topic-progress');
-  container.innerHTML = topics.map(t => {
-    const exploration = getTopicExploration(t.key);
-    const label = exploration.total ? `${t.pct}%` : '—';
-    return `
-      <div class="topic-row">
-        <span>${t.label}</span>
-        <div class="topic-bar"><div class="topic-fill" style="width:${t.pct}%"></div></div>
-        <div class="topic-pct" title="${exploration.explored}/${exploration.total} content items explored">${label}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-function startMode(mode) {
-  if (!currentUser) { showScreen('auth'); return; }
-  state.currentMode = mode;
-  state.lastMode = mode;
-  state.qIndex = 0;
-  state.correct = 0;
-  state.wrong = 0;
-  stopMatchTimer();
-  if (mode === 'flashcard') startFlashcards();
-  else if (mode === 'mcq') startMCQ();
-  else if (mode === 'fill') startFill();
-  else if (mode === 'match') startMatch();
-}
-
-function retryMode() { if (state.lastMode) startMode(state.lastMode); }
-
-// FLASHCARD
-function startFlashcards() {
-  state.sessionCards = shuffle(VOCAB).slice(0, 10);
-  state.qIndex = 0;
-  showScreen('flashcard');
-  loadFlashcard();
-}
-
-function loadFlashcard() {
-  const card = state.sessionCards[state.qIndex];
-  recordExpressionSeen(card.term, 'flashcard');
-  const pct = (state.qIndex / state.sessionCards.length) * 100;
-  document.getElementById('fc-bar').style.width = pct + '%';
-  document.getElementById('fc-counter').textContent = (state.qIndex + 1) + ' / ' + state.sessionCards.length;
-  document.getElementById('fc-cat').textContent = card.cat;
-  document.getElementById('fc-term').textContent = card.term;
-  document.getElementById('fc-phonetic').textContent = card.phonetic + ' · tap to reveal';
-  document.getElementById('fc-def').textContent = card.def;
-  document.getElementById('fc-ex').textContent = card.example;
-  const fc = document.getElementById('flashcard');
-  fc.classList.remove('flipped');
-  document.getElementById('fc-actions').style.display = 'none';
-  document.getElementById('fc-flip-hint').style.display = 'block';
-  const panel = document.getElementById('fc-action-panel');
-  const continueBtn = document.getElementById('fc-continue-btn');
-  if (panel) { panel.classList.remove('show'); panel.innerHTML = ''; }
-  if (continueBtn) continueBtn.classList.remove('show');
-}
-
-function flipCard() {
-  const fc = document.getElementById('flashcard');
-  fc.classList.toggle('flipped');
-  const flipped = fc.classList.contains('flipped');
-  document.getElementById('fc-actions').style.display = flipped ? 'flex' : 'none';
-  document.getElementById('fc-flip-hint').style.display = flipped ? 'none' : 'block';
-}
-
-function getCurrentFlashcard() {
-  return state.sessionCards[state.qIndex];
-}
-
-function getTermSupport(term) {
-  const key = normalizeTermKey(term);
-  const exact = TERM_SUPPORT[term] || TERM_SUPPORT[key];
-  if (exact) return exact;
-  return {
-    translation: 'Tradução ainda não cadastrada para esta expressão.',
-    examples: [
-      `I need to understand how to use ${term} in context.`,
-      `Can you give me an example with ${term}?`,
-      `This conversation includes the term ${term}.`
-    ]
-  };
-}
-
-function handleFlashcardAction(action) {
-  const card = getCurrentFlashcard();
-  if (!card) return;
-
-  recordFlashcardAction(card.term, action);
-
-  if (action === 'got_it') {
-    state.correct++;
-    state.xp += 5;
-    recordTopicResult(card.cat, true);
-    recordExpressionResult(card.term, true);
-    document.getElementById('xp-count').textContent = state.xp;
-    saveProgress();
-    advanceFlashcard();
-    return;
-  }
-
-  const support = getTermSupport(card.term);
-  const panel = document.getElementById('fc-action-panel');
-  const continueBtn = document.getElementById('fc-continue-btn');
-
-  document.getElementById('fc-actions').style.display = 'none';
-
-  if (action === 'translate') {
-    panel.innerHTML = `
-      <h3>🇧🇷 Translation</h3>
-      <p><strong>${escapeHtml(card.term)}</strong>: ${escapeHtml(support.translation)}</p>
-      <p style="margin-top:.55rem;color:var(--muted);font-size:13px"><em>${escapeHtml(card.example || '')}</em></p>
-    `;
-    state.xp += 1;
-  }
-
-  if (action === 'hard') {
-    panel.innerHTML = `
-      <h3>Examples in context</h3>
-      <ul>${support.examples.map(ex => `<li>${escapeHtml(ex)}</li>`).join('')}</ul>
-    `;
-    state.xp += 2;
-    recordTopicResult(card.cat, false);
-  }
-
-  document.getElementById('xp-count').textContent = state.xp;
-  saveProgress();
-  panel.classList.add('show');
-  continueBtn.classList.add('show');
-}
-
-function continueFlashcardAfterSupport() {
-  const card = getCurrentFlashcard();
-  if (card) recordExpressionResult(card.term, false);
-  advanceFlashcard();
-}
-
-function advanceFlashcard() {
-  state.qIndex++;
-  if (state.qIndex >= state.sessionCards.length) { showResults('flashcard'); return; }
-  loadFlashcard();
-}
-
-// MCQ
-function startMCQ() {
-  state.sessionCards = shuffle(MCQ_QUESTIONS).slice(0, 10);
-  state.qIndex = 0;
-  showScreen('mcq');
-  loadMCQ();
-}
-
-function loadMCQ() {
-  const q = state.sessionCards[state.qIndex];
-  recordExpressionSeen(q.correct, 'multiple_choice');
-  const pct = (state.qIndex / state.sessionCards.length) * 100;
-  document.getElementById('mcq-bar').style.width = pct + '%';
-  document.getElementById('mcq-counter').textContent = (state.qIndex + 1) + ' / ' + state.sessionCards.length;
-  document.getElementById('mcq-cat').textContent = q.cat;
-  document.getElementById('mcq-type').textContent = q.type;
-  document.getElementById('mcq-question').textContent = q.q;
-  const ctxEl = document.getElementById('mcq-context');
-  if (q.context) { ctxEl.textContent = q.context; ctxEl.style.display = 'block'; }
-  else { ctxEl.style.display = 'none'; }
-  const opts = shuffle(q.options);
-  const letters = ['A','B','C','D'];
-  document.getElementById('mcq-options').innerHTML = opts.map((o,i) => `
-    <button class="option-btn" onclick="checkMCQ(this,'${o}','${q.correct}','${q.cat}')">
-      <span class="opt-letter">${letters[i]}</span>
-      <span>${o}</span>
-    </button>
-  `).join('');
-  document.getElementById('mcq-feedback').classList.remove('show','correct','wrong');
-  document.getElementById('mcq-next').classList.remove('show');
-}
-
-function checkMCQ(btn, chosen, correct, cat) {
-  document.querySelectorAll('#mcq-options .option-btn').forEach(b => b.disabled = true);
-  const isCorrect = chosen === correct;
-  if (isCorrect) {
-    btn.classList.add('correct');
-    state.correct++; state.xp += 10;
-    recordTopicResult(cat, true);
-  } else {
-    btn.classList.add('wrong');
-    state.wrong++;
-    recordTopicResult(cat, false);
-    document.querySelectorAll('#mcq-options .option-btn').forEach(b => {
-      if (b.querySelector('span:last-child').textContent === correct) b.classList.add('correct');
-    });
-  }
-  recordTermResult(correct, isCorrect);
-  const fb = document.getElementById('mcq-feedback');
-  fb.classList.add('show', isCorrect ? 'correct' : 'wrong');
-  document.getElementById('mcq-fb-title').textContent = isCorrect ? '✓ Correct!' : '✗ Not quite';
-  const entry = VOCAB.find(v => v.term === correct);
-  document.getElementById('mcq-fb-body').innerHTML = entry
-    ? `<span class="fb-answer">${entry.term}</span> — ${entry.def}`
-    : `The correct answer is <span class="fb-answer">${correct}</span>`;
-  document.getElementById('xp-count').textContent = state.xp;
-  document.getElementById('mcq-next').classList.add('show');
-}
-
-function nextQuestion(mode) {
-  state.qIndex++;
-  if (state.qIndex >= state.sessionCards.length) { showResults(mode); return; }
-  if (mode === 'mcq') loadMCQ();
-  else if (mode === 'fill') loadFill();
-}
-
-// FILL
-function startFill() {
-  state.sessionCards = shuffle(FILL_QUESTIONS).slice(0, 8);
-  state.qIndex = 0;
-  showScreen('fill');
-  loadFill();
-}
-
-function loadFill() {
-  const q = state.sessionCards[state.qIndex];
-  recordExpressionSeen(q.answer, 'fill');
-  const pct = (state.qIndex / state.sessionCards.length) * 100;
-  document.getElementById('fill-bar').style.width = pct + '%';
-  document.getElementById('fill-counter').textContent = (state.qIndex + 1) + ' / ' + state.sessionCards.length;
-  document.getElementById('fill-cat').textContent = q.cat;
-  const parts = q.q.split('_____');
-  document.getElementById('fill-question').innerHTML = parts[0] + '<span class="highlight">_____</span>' + (parts[1] || '');
-  const ctxEl = document.getElementById('fill-context');
-  if (q.context) { ctxEl.textContent = '💬 ' + q.context + (q.hint ? ' · Hint: ' + q.hint : ''); ctxEl.style.display = 'block'; }
-  else { ctxEl.style.display = 'none'; }
-  const inp = document.getElementById('fill-input');
-  inp.value = ''; inp.disabled = false;
-  inp.classList.remove('correct', 'wrong');
-  document.getElementById('fill-feedback').classList.remove('show','correct','wrong');
-  document.getElementById('fill-next').classList.remove('show');
-  document.querySelector('.submit-btn').disabled = false;
-  setTimeout(() => inp.focus(), 100);
-}
-
-function checkFill() {
-  const q = state.sessionCards[state.qIndex];
-  const inp = document.getElementById('fill-input');
-  const val = inp.value.trim().toLowerCase();
-  const expected = q.answer.toLowerCase();
-  const isCorrect = val === expected || expected.split(' ').every(w => val.includes(w));
-  inp.disabled = true;
-  document.querySelector('.submit-btn').disabled = true;
-  inp.classList.add(isCorrect ? 'correct' : 'wrong');
-  if (isCorrect) { state.correct++; state.xp += 12; recordTopicResult(q.cat, true); }
-  else { state.wrong++; recordTopicResult(q.cat, false); }
-  recordTermResult(q.answer, isCorrect);
-  const fb = document.getElementById('fill-feedback');
-  fb.classList.add('show', isCorrect ? 'correct' : 'wrong');
-  document.getElementById('fill-fb-title').textContent = isCorrect ? '✓ Correct!' : '✗ The answer is:';
-  document.getElementById('fill-fb-body').innerHTML = isCorrect
-    ? `"${q.answer}" — great job! ${q.hint || ''}`
-    : `<span class="fb-answer">${q.answer}</span> — ${q.hint || ''}`;
-  document.getElementById('xp-count').textContent = state.xp;
-  document.getElementById('fill-next').classList.add('show');
-}
-
-// MATCH
-function startMatch() {
-  state.matchPairs = shuffle(MATCH_DATA).slice(0, 6);
-  state.matchPairs.forEach(pair => recordExpressionSeen(pair.term, 'match'));
-  state.matchScore = 0;
-  state.matchSelected = { term: null, def: null };
-  state.matchSeconds = 0;
-  showScreen('match');
-  document.getElementById('match-score').textContent = '0 / 6';
-  document.getElementById('match-feedback').classList.remove('show','correct','wrong');
-  document.getElementById('match-next').classList.remove('show');
-  renderMatchCards();
-  startMatchTimer();
-}
-
-function renderMatchCards() {
-  state.matchPairs.forEach(pair => recordExpressionSeen(pair.term, 'match'));
-  const terms = shuffle(state.matchPairs.map((p,i) => ({...p, idx: i, type:'term'})));
-  const defs = shuffle(state.matchPairs.map((p,i) => ({...p, idx: i, type:'def'})));
-  document.getElementById('match-terms').innerHTML = terms.map(t =>
-    `<button class="option-btn" id="mt-${t.idx}" onclick="selectMatch('term',${t.idx},this)">${t.term}</button>`
-  ).join('');
-  document.getElementById('match-defs').innerHTML = defs.map(d =>
-    `<button class="option-btn" id="md-${d.idx}" onclick="selectMatch('def',${d.idx},this)">${d.def}</button>`
-  ).join('');
-}
-
-function selectMatch(type, idx, btn) {
-  if (btn.disabled || btn.classList.contains('correct')) return;
-  document.querySelectorAll('#match-terms .option-btn, #match-defs .option-btn').forEach(b => {
-    if (!b.disabled && !b.classList.contains('correct')) b.style.borderColor = '';
-  });
-  state.matchSelected[type] = { idx, btn };
-  btn.style.borderColor = 'var(--accent)';
-  if (state.matchSelected.term && state.matchSelected.def) {
-    const tIdx = state.matchSelected.term.idx;
-    const dIdx = state.matchSelected.def.idx;
-    const tBtn = state.matchSelected.term.btn;
-    const dBtn = state.matchSelected.def.btn;
-    if (tIdx === dIdx) {
-      tBtn.classList.add('correct'); dBtn.classList.add('correct');
-      tBtn.disabled = true; dBtn.disabled = true;
-      state.matchScore++;
-      document.getElementById('match-score').textContent = state.matchScore + ' / 6';
-      state.correct++;
-      recordTermResult(state.matchPairs[tIdx].term, true);
-      showMatchFeedback(true, state.matchPairs[tIdx].term);
-      if (state.matchScore === 6) {
-        stopMatchTimer();
-        document.getElementById('match-next').classList.add('show');
-        state.xp += state.matchScore * 8;
-        document.getElementById('xp-count').textContent = state.xp;
-      }
-    } else {
-      tBtn.classList.add('wrong'); dBtn.classList.add('wrong');
-      state.wrong++;
-      recordTermResult(state.matchPairs[tIdx].term, false);
-      showMatchFeedback(false, '');
-      setTimeout(() => {
-        tBtn.classList.remove('wrong'); dBtn.classList.remove('wrong');
-        tBtn.style.borderColor = ''; dBtn.style.borderColor = '';
-      }, 800);
-    }
-    state.matchSelected = { term: null, def: null };
-  }
-}
-
-function showMatchFeedback(ok, term) {
-  const fb = document.getElementById('match-feedback');
-  fb.classList.remove('show','correct','wrong');
-  void fb.offsetWidth;
-  fb.classList.add('show', ok ? 'correct' : 'wrong');
-  if (ok) {
-    const entry = VOCAB.find(v => v.term.toLowerCase() === term.toLowerCase());
-    document.getElementById('match-fb-title').textContent = '✓ Match!';
-    document.getElementById('match-fb-body').innerHTML = entry ? `Example: <em>${entry.example}</em>` : `"${term}" matched!`;
-  } else {
-    document.getElementById('match-fb-title').textContent = '✗ Not a match — try again';
-    document.getElementById('match-fb-body').textContent = 'Think about the definitions carefully.';
-  }
-}
-
-function startMatchTimer() {
-  state.matchTimer = setInterval(() => {
-    state.matchSeconds++;
-    const m = Math.floor(state.matchSeconds / 60);
-    const s = state.matchSeconds % 60;
-    document.getElementById('match-timer').textContent = '⏱ ' + m + ':' + String(s).padStart(2,'0');
-  }, 1000);
-}
-
-function stopMatchTimer() {
-  if (state.matchTimer) { clearInterval(state.matchTimer); state.matchTimer = null; }
-}
-
-function normalizeCategory(cat) {
-  if (!cat) return null;
-  if (cat.includes('Agile')) return 'Agile';
-  if (cat.includes('UX')) return 'UX';
-  if (cat.includes('DevOps')) return 'DevOps';
-  if (cat.includes('Product')) return 'Product';
-  if (cat.includes('Development') || cat.includes('Code') || cat.includes('Engineering') || cat.includes('QA')) return 'Development';
-  return null;
-}
-
-function updateTopicProgressFromSession(mode) {
-  // Topic progress is now calculated from real saved attempts/correct answers.
-}
-
-// RESULTS
-function showResults(mode) {
-  stopMatchTimer();
-  const total = state.correct + state.wrong;
-  const pct = total > 0 ? Math.round((state.correct / total) * 100) : 100;
-  const deg = Math.round(pct * 3.6);
-  document.getElementById('score-ring').style.background =
-    `conic-gradient(var(--accent3) ${deg}deg, var(--surface2) ${deg}deg)`;
-  document.getElementById('res-score').textContent = pct + '%';
-  document.getElementById('res-correct').textContent = state.correct;
-  document.getElementById('res-wrong').textContent = state.wrong;
-  const xpEarned = state.correct * (mode === 'fill' ? 12 : mode === 'match' ? 8 : 10);
-  document.getElementById('res-xp').textContent = '+' + xpEarned;
-
-  const headlines = [
-    [90, "Excellent work! 🔥", "Your tech English is on fire. Keep that momentum going."],
-    [70, "Good session! 💪", "Solid progress. Review the ones you missed and you'll nail them next time."],
-    [50, "Keep going! 📈", "Every mistake is a learning opportunity. Repetition is the key."],
-    [0, "Room to grow 🌱", "Don't worry — spaced repetition will get these terms locked in."]
-  ];
-  const [, h, m] = headlines.find(([t]) => pct >= t);
-  document.getElementById('res-headline').textContent = h;
-  document.getElementById('res-message').textContent = m;
-
-  state.streak = Math.min(state.streak + 1, 99);
-  state.completedActivities += 1;
-  state.totalCorrect += state.correct;
-  state.totalWrong += state.wrong;
-  saveProgress();
-  document.getElementById('streak-count').textContent = state.streak;
-  showScreen('results');
-}
-
-(async function init() {
-  await requireAuthOnStart();
-})();
 </script>
+
 </body>
 </html>
