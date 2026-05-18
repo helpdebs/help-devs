@@ -598,12 +598,17 @@ try {
 }
 
 if (supabaseClient) {
-  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-    currentUser = session?.user || null;
-    updateAuthHeader(currentUser);
-    if (currentUser) {
-      await loadProgress();
-      updateHomeStats();
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    // Do not auto-enter the game from a restored browser session.
+    // Login only happens after the user submits the form.
+    if (_event === 'SIGNED_IN' && session?.user) {
+      currentUser = session.user;
+      updateAuthHeader(currentUser);
+    }
+
+    if (_event === 'SIGNED_OUT') {
+      currentUser = null;
+      updateAuthHeader(null);
     }
   });
 }
@@ -1009,28 +1014,32 @@ function setAuthLoading(isLoading) {
 }
 
 function toggleAuthMode() {
-  authMode = authMode === 'login' ? 'signup' : 'login';
   const title = document.getElementById('auth-title');
   const subtitle = document.getElementById('auth-subtitle');
   const submit = document.getElementById('auth-submit-btn');
   const switchText = document.getElementById('auth-switch-text');
   const switchBtn = document.getElementById('auth-switch-btn');
+  const password = document.getElementById('auth-password');
+
+  setAuthMessage('');
 
   if (authMode === 'login') {
+    authMode = 'signup';
+    if (title) title.textContent = 'Create your account';
+    if (subtitle) subtitle.textContent = 'Crie uma conta para salvar seu progresso, histórico, streak e expressões vistas.';
+    if (submit) submit.textContent = 'Create account';
+    if (switchText) switchText.textContent = 'Already have an account?';
+    if (switchBtn) switchBtn.textContent = 'Login';
+    if (password) password.setAttribute('autocomplete', 'new-password');
+  } else {
+    authMode = 'login';
     if (title) title.textContent = 'Login to save your progress';
     if (subtitle) subtitle.textContent = 'Entre com email e senha para manter histórico, progresso, streak e expressões vistas salvos na sua conta.';
     if (submit) submit.textContent = 'Login';
     if (switchText) switchText.textContent = "Don't have an account?";
     if (switchBtn) switchBtn.textContent = 'Create account';
-  } else {
-    if (title) title.textContent = 'Create your student account';
-    if (subtitle) subtitle.textContent = 'Crie uma conta para este jogo salvar seu progresso individualmente no Supabase.';
-    if (submit) submit.textContent = 'Create account';
-    if (switchText) switchText.textContent = 'Already have an account?';
-    if (switchBtn) switchBtn.textContent = 'Login';
+    if (password) password.setAttribute('autocomplete', 'current-password');
   }
-
-  setAuthMessage('');
 }
 
 function updateAuthHeader(user) {
@@ -1055,8 +1064,10 @@ async function submitAuthForm() {
     return;
   }
 
-  const email = document.getElementById('auth-email')?.value.trim();
-  const password = document.getElementById('auth-password')?.value;
+  const emailInput = document.getElementById('auth-email');
+  const passwordInput = document.getElementById('auth-password');
+  const email = emailInput?.value.trim();
+  const password = passwordInput?.value || '';
 
   if (!email || !password) {
     setAuthMessage('Preencha email e senha.', 'error');
@@ -1072,31 +1083,71 @@ async function submitAuthForm() {
   setAuthMessage('');
 
   try {
-    const result = authMode === 'login'
-      ? await supabaseClient.auth.signInWithPassword({ email, password })
-      : await supabaseClient.auth.signUp({ email, password });
+    if (authMode === 'login') {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (result.error) {
-      setAuthMessage(result.error.message, 'error');
+      if (error) {
+        const msg = String(error.message || '');
+
+        if (msg.toLowerCase().includes('invalid login credentials')) {
+          setAuthMessage('Conta não encontrada ou senha incorreta. Se for seu primeiro acesso, clique em Create account.', 'error');
+          return;
+        }
+
+        setAuthMessage(msg, 'error');
+        return;
+      }
+
+      currentUser = data?.user || data?.session?.user || null;
+
+      if (!currentUser) {
+        setAuthMessage('Não consegui identificar o usuário. Tente fazer login novamente.', 'error');
+        return;
+      }
+
+      await initializeUserSession();
       return;
     }
 
-    currentUser = result.data?.user || null;
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password
+    });
 
-    if (!currentUser) {
-      setAuthMessage('Conta criada. Confira o email, se a confirmação estiver ativada no Supabase.', 'ok');
+    if (error) {
+      setAuthMessage(error.message || 'Erro ao criar conta.', 'error');
       return;
     }
 
-    updateAuthHeader(currentUser);
-    await loadProgress();
-    updateHomeStats();
-    showScreen('home');
+    currentUser = data?.user || data?.session?.user || null;
+
+    if (currentUser && data?.session) {
+      setAuthMessage('Conta criada com sucesso.', 'ok');
+      await initializeUserSession();
+      return;
+    }
+
+    setAuthMessage('Conta criada. Se o Supabase pedir confirmação de email, confirme antes de fazer login. Para testar direto, desative Confirm email.', 'ok');
+    authMode = 'login';
+    toggleAuthMode();
+    toggleAuthMode();
+
   } catch (error) {
-    setAuthMessage(error?.message || 'Erro ao autenticar.', 'error');
+    setAuthMessage(error?.message || 'Erro inesperado ao autenticar.', 'error');
+    console.error(error);
   } finally {
     setAuthLoading(false);
   }
+}
+
+async function initializeUserSession() {
+  updateAuthHeader(currentUser);
+  await loadProgress();
+  updateHomeStats();
+  showScreen('home');
 }
 
 async function signOutUser() {
@@ -1111,24 +1162,23 @@ async function signOutUser() {
 }
 
 async function requireAuthOnStart() {
-  if (!supabaseClient) {
-    showScreen('auth');
-    setAuthMessage('Supabase não carregou. Verifique a conexão.', 'error');
-    return;
+  // Always start on the login screen. This avoids stale browser sessions
+  // being treated as a valid game login before the user submits the form.
+  currentUser = null;
+  updateAuthHeader(null);
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.auth.signOut();
+    } catch (error) {
+      console.warn('Could not clear previous Supabase session:', error);
+    }
   }
 
-  const { data } = await supabaseClient.auth.getSession();
-  currentUser = data?.session?.user || null;
-  updateAuthHeader(currentUser);
-
-  if (!currentUser) {
-    showScreen('auth');
-    return;
-  }
-
-  await loadProgress();
+  applyProgressPayload({});
   updateHomeStats();
-  showScreen('home');
+  showScreen('auth');
+  setAuthMessage('');
 }
 
 function getProgressPayload() {
