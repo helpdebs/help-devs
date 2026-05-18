@@ -313,6 +313,37 @@
   .action-btn:hover { border-color: var(--accent); color: var(--accent); }
   .action-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
   .action-btn.primary:hover { opacity: 0.85; }
+
+
+  /* AUTH */
+  .auth-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 1.5rem; max-width: 460px; margin: 2rem auto; box-shadow: 0 18px 50px rgba(0,0,0,0.24);
+  }
+  .auth-card h1 { font-size: 24px; margin-bottom: .4rem; }
+  .auth-card p { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 1rem; }
+  .auth-field { display:flex; flex-direction:column; gap:6px; margin-bottom: 12px; }
+  .auth-field label { font-size: 11px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing:.08em; }
+  .auth-input {
+    background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: .85rem 1rem; color: var(--text); font-family: var(--sans); outline:none;
+  }
+  .auth-input:focus { border-color: var(--accent); }
+  .auth-actions { display:flex; gap:10px; margin-top: 14px; }
+  .auth-actions .action-btn { width:100%; }
+  .auth-message { min-height: 20px; margin-top: 12px; color: var(--muted); font-size: 12px; line-height:1.5; }
+  .auth-message.error { color: var(--danger); }
+  .auth-message.ok { color: var(--accent3); }
+  .auth-switch { margin-top: 14px; font-size: 12px; color: var(--muted); text-align:center; }
+  .auth-switch button { background:none; border:none; color: var(--accent); cursor:pointer; font-family:var(--sans); font-weight:700; }
+  .user-chip { max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .logout-btn { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:20px; padding:4px 10px; cursor:pointer; font-family:var(--mono); font-size:11px; }
+  .logout-btn:hover { border-color:var(--danger); color:var(--danger); }
+  @media (max-width: 560px) {
+    .auth-actions { flex-direction:column; }
+    .stats-row { flex-wrap:wrap; justify-content:flex-end; }
+  }
+
 </style>
 </head>
 <body>
@@ -323,11 +354,41 @@
     <div class="stats-row">
       <div class="stat-chip streak"><div class="dot"></div><span id="streak-count">0</span> day streak</div>
       <div class="stat-chip xp"><div class="dot"></div><span id="xp-count">0</span> XP</div>
+      <div class="stat-chip" id="user-status-chip" style="display:none"><div class="dot"></div><span class="user-chip" id="user-email-label"></span></div>
+      <button class="logout-btn" id="logout-btn" onclick="signOutUser()" style="display:none">logout</button>
     </div>
   </header>
 
+  <!-- AUTH -->
+  <div class="screen active" id="screen-auth">
+    <div class="auth-card">
+      <div class="question-type">student access</div>
+      <h1 id="auth-title">Login to save your progress</h1>
+      <p id="auth-subtitle">Entre com email e senha para manter histórico, progresso, streak e expressões vistas salvos na sua conta.</p>
+
+      <div class="auth-field">
+        <label for="auth-email">email</label>
+        <input class="auth-input" id="auth-email" type="email" placeholder="student@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label for="auth-password">password</label>
+        <input class="auth-input" id="auth-password" type="password" placeholder="minimum 6 characters" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuthForm()">
+      </div>
+
+      <div class="auth-actions">
+        <button class="action-btn primary" id="auth-submit-btn" onclick="submitAuthForm()">Login</button>
+      </div>
+
+      <div class="auth-message" id="auth-message"></div>
+      <div class="auth-switch">
+        <span id="auth-switch-text">Don't have an account?</span>
+        <button onclick="toggleAuthMode()" id="auth-switch-btn">Create account</button>
+      </div>
+    </div>
+  </div>
+
   <!-- HOME -->
-  <div class="screen active" id="screen-home">
+  <div class="screen" id="screen-home">
     <div class="welcome-badge">
       <h1>Level up your <em>Tech English</em></h1>
       <p>Vocabulário real de dev, UX, produto e dados — do jeito que aparece em entrevistas, reuniões e daily standups em inglês.</p>
@@ -526,12 +587,25 @@ const SUPABASE_ANON_KEY = "sb_publishable_81NM6F08rsXXSCgjWl4iSg_v99cdVpo";
 const GAME_KEY = "tech_vocab_game";
 
 let supabaseClient = null;
+let currentUser = null;
+let authMode = "login";
 try {
   if (window.supabase) {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 } catch (error) {
   console.warn("Supabase client could not be initialized:", error);
+}
+
+if (supabaseClient) {
+  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+    currentUser = session?.user || null;
+    updateAuthHeader(currentUser);
+    if (currentUser) {
+      await loadProgress();
+      updateHomeStats();
+    }
+  });
 }
 
 const VOCAB = [
@@ -841,6 +915,7 @@ function getExpressionHistoryArray() {
 }
 
 function openHistory() {
+  if (!currentUser) { showScreen('auth'); return; }
   stopMatchTimer();
   renderHistory();
   showScreen('history');
@@ -913,6 +988,149 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
+
+function getLocalSaveKey() {
+  return currentUser?.id ? `${SAVE_KEY}_${currentUser.id}` : `${SAVE_KEY}_guest`;
+}
+
+function setAuthMessage(message = '', type = '') {
+  const el = document.getElementById('auth-message');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove('error', 'ok');
+  if (type) el.classList.add(type);
+}
+
+function setAuthLoading(isLoading) {
+  const btn = document.getElementById('auth-submit-btn');
+  if (!btn) return;
+  btn.disabled = isLoading;
+  btn.textContent = isLoading ? 'Loading...' : (authMode === 'login' ? 'Login' : 'Create account');
+}
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  const title = document.getElementById('auth-title');
+  const subtitle = document.getElementById('auth-subtitle');
+  const submit = document.getElementById('auth-submit-btn');
+  const switchText = document.getElementById('auth-switch-text');
+  const switchBtn = document.getElementById('auth-switch-btn');
+
+  if (authMode === 'login') {
+    if (title) title.textContent = 'Login to save your progress';
+    if (subtitle) subtitle.textContent = 'Entre com email e senha para manter histórico, progresso, streak e expressões vistas salvos na sua conta.';
+    if (submit) submit.textContent = 'Login';
+    if (switchText) switchText.textContent = "Don't have an account?";
+    if (switchBtn) switchBtn.textContent = 'Create account';
+  } else {
+    if (title) title.textContent = 'Create your student account';
+    if (subtitle) subtitle.textContent = 'Crie uma conta para este jogo salvar seu progresso individualmente no Supabase.';
+    if (submit) submit.textContent = 'Create account';
+    if (switchText) switchText.textContent = 'Already have an account?';
+    if (switchBtn) switchBtn.textContent = 'Login';
+  }
+
+  setAuthMessage('');
+}
+
+function updateAuthHeader(user) {
+  const userChip = document.getElementById('user-status-chip');
+  const userEmail = document.getElementById('user-email-label');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  if (user) {
+    if (userChip) userChip.style.display = 'flex';
+    if (userEmail) userEmail.textContent = user.email || 'logged in';
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+  } else {
+    if (userChip) userChip.style.display = 'none';
+    if (userEmail) userEmail.textContent = '';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+}
+
+async function submitAuthForm() {
+  if (!supabaseClient) {
+    setAuthMessage('Supabase não carregou. Confira sua internet ou o CDN do Supabase.', 'error');
+    return;
+  }
+
+  const email = document.getElementById('auth-email')?.value.trim();
+  const password = document.getElementById('auth-password')?.value;
+
+  if (!email || !password) {
+    setAuthMessage('Preencha email e senha.', 'error');
+    return;
+  }
+
+  if (password.length < 6) {
+    setAuthMessage('A senha precisa ter pelo menos 6 caracteres.', 'error');
+    return;
+  }
+
+  setAuthLoading(true);
+  setAuthMessage('');
+
+  try {
+    const result = authMode === 'login'
+      ? await supabaseClient.auth.signInWithPassword({ email, password })
+      : await supabaseClient.auth.signUp({ email, password });
+
+    if (result.error) {
+      setAuthMessage(result.error.message, 'error');
+      return;
+    }
+
+    currentUser = result.data?.user || null;
+
+    if (!currentUser) {
+      setAuthMessage('Conta criada. Confira o email, se a confirmação estiver ativada no Supabase.', 'ok');
+      return;
+    }
+
+    updateAuthHeader(currentUser);
+    await loadProgress();
+    updateHomeStats();
+    showScreen('home');
+  } catch (error) {
+    setAuthMessage(error?.message || 'Erro ao autenticar.', 'error');
+  } finally {
+    setAuthLoading(false);
+  }
+}
+
+async function signOutUser() {
+  stopMatchTimer();
+  if (supabaseClient) await supabaseClient.auth.signOut();
+  currentUser = null;
+  updateAuthHeader(null);
+  applyProgressPayload({});
+  updateHomeStats();
+  showScreen('auth');
+  setAuthMessage('Você saiu da conta.', 'ok');
+}
+
+async function requireAuthOnStart() {
+  if (!supabaseClient) {
+    showScreen('auth');
+    setAuthMessage('Supabase não carregou. Verifique a conexão.', 'error');
+    return;
+  }
+
+  const { data } = await supabaseClient.auth.getSession();
+  currentUser = data?.session?.user || null;
+  updateAuthHeader(currentUser);
+
+  if (!currentUser) {
+    showScreen('auth');
+    return;
+  }
+
+  await loadProgress();
+  updateHomeStats();
+  showScreen('home');
+}
+
 function getProgressPayload() {
   return {
     xp: state.xp,
@@ -940,11 +1158,14 @@ function applyProgressPayload(data = {}) {
 }
 
 async function getLoggedUser() {
+  if (currentUser) return currentUser;
   if (!supabaseClient) return null;
   try {
     const { data, error } = await supabaseClient.auth.getUser();
     if (error) return null;
-    return data?.user || null;
+    currentUser = data?.user || null;
+    updateAuthHeader(currentUser);
+    return currentUser;
   } catch (error) {
     console.warn('Could not read Supabase user:', error);
     return null;
@@ -953,7 +1174,7 @@ async function getLoggedUser() {
 
 async function loadProgress() {
   try {
-    let saved = localStorage.getItem(SAVE_KEY);
+    let saved = localStorage.getItem(getLocalSaveKey());
     if (!saved) {
       const legacyKey = LEGACY_SAVE_KEYS.find(key => localStorage.getItem(key));
       if (legacyKey) saved = localStorage.getItem(legacyKey);
@@ -984,7 +1205,7 @@ async function loadProgress() {
 
     if (remoteRow?.progress) {
       applyProgressPayload(remoteRow.progress);
-      localStorage.setItem(SAVE_KEY, JSON.stringify(getProgressPayload()));
+      localStorage.setItem(getLocalSaveKey(), JSON.stringify(getProgressPayload()));
     } else {
       saveProgress(true);
     }
@@ -995,7 +1216,7 @@ async function loadProgress() {
 
 function saveProgress(syncRemote = true) {
   const data = getProgressPayload();
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  localStorage.setItem(getLocalSaveKey(), JSON.stringify(data));
 
   if (syncRemote) {
     syncProgressToSupabase(data);
@@ -1025,7 +1246,7 @@ async function syncProgressToSupabase(data = getProgressPayload()) {
 }
 
 async function resetProgress() {
-  localStorage.removeItem(SAVE_KEY);
+  localStorage.removeItem(getLocalSaveKey());
   LEGACY_SAVE_KEYS.forEach(key => localStorage.removeItem(key));
   state.xp = 0;
   state.streak = 0;
@@ -1101,6 +1322,7 @@ function updateHomeStats() {
 }
 
 function startMode(mode) {
+  if (!currentUser) { showScreen('auth'); return; }
   state.currentMode = mode;
   state.lastMode = mode;
   state.qIndex = 0;
@@ -1489,8 +1711,7 @@ function showResults(mode) {
 }
 
 (async function init() {
-  await loadProgress();
-  updateHomeStats();
+  await requireAuthOnStart();
 })();
 </script>
 </body>
